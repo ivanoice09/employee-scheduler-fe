@@ -1,0 +1,23 @@
+<table class="table">
+    <thead>
+        <tr>
+           <th>Employees</th>
+           <th>Monday</th>
+           <th>Tuesday</th>
+           <th>Wednesday</th>
+           <th>Thursday</th>
+           <th>Friday</th>
+           <th>Saturday</th>
+           <th>Sunday</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (employee of employees; track $index) {
+            <tr>
+                <td>
+                    {{ employee }}
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
