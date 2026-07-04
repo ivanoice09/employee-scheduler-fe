@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { WeekScheduleDTO } from '../../shared/services/http/DTO/WeekScheduleDTO';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-schedule',
@@ -7,16 +9,23 @@ import { Component } from '@angular/core';
   styleUrl: './schedule.css',
 })
 export class Schedule {
-  employees: string[] = [
-    'Luca Rossi',
-    'Giulia Bianchi',
-    'Marco Ferrari',
-    'Sara Romano',
-    'Alessandro Conti',
-    'Chiara Ricci',
-    'Matteo Greco',
-    'Elena Bruno',
-    'Davide Gallo',
-    'Francesca Moretti',
-  ];
+
+  private weekScheduleSubject = new BehaviorSubject<WeekScheduleDTO | null>(null);
+  weekSchedule$ = this.weekScheduleSubject.asObservable();
+
+  
+
+  // employees: string[] = [
+  //   'Luca Rossi',
+  //   'Giulia Bianchi',
+  //   'Marco Ferrari',
+  //   'Sara Romano',
+  //   'Alessandro Conti',
+  //   'Chiara Ricci',
+  //   'Matteo Greco',
+  //   'Elena Bruno',
+  //   'Davide Gallo',
+  //   'Francesca Moretti',
+  // ];
 }
+
