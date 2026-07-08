@@ -1,23 +1,73 @@
-<table class="table">
-    <thead>
-        <tr>
-           <th>Employees</th>
-           <th>Monday</th>
-           <th>Tuesday</th>
-           <th>Wednesday</th>
-           <th>Thursday</th>
-           <th>Friday</th>
-           <th>Saturday</th>
-           <th>Sunday</th>
-        </tr>
-    </thead>
-    <tbody>
-        @for (employee of employees; track $index) {
+@if (weekSchedule$ | async; as week) {
+<form [formGroup]="form" (ngSubmit)="save()">
+    <table class="table">
+        <thead>
             <tr>
-                <td>
-                    {{ employee }}
-                </td>
+                <th>Employees</th>
+                @for (dayName of dayNames; track $index) {
+                <th>
+                    {{ dayName }}<br>
+                    <small>{{ getDateForDay(week.startDate, $index) | date:'dd/MM' }}</small>
+                </th>
+                }
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody formArrayName="assignments">
+            @for (assignment of assignmentsFormArray.controls; track $index; let employeeIndex = $index) {
+            <tr [formGroupName]="employeeIndex">
+                <td>
+                    {{ assignment.get('employeeName')?.value }}
+                </td>
+                <ng-container formArrayName="shifts">
+                    @for (shift of getShifts(employeeIndex).controls; track $index; let dayIndex = $index) {
+                    <td [formGroupName]="dayIndex">
+                        <div class="startEndTime">
+                            <div class="startHourMinute">
+                                <select formControlName="startHour">
+                                    <option value="">HH</option>
+                                    @for (hour of hours; track hour) {
+                                    <option [value]="hour">{{ hour }}</option>
+                                    }
+                                </select>
+
+                                <span>:</span>
+
+                                <select formControlName="startMinute">
+                                    <option value="">MM</option>
+                                    @for (minute of minutes; track minute) {
+                                    <option [value]="minute">{{ minute }}</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <span>-</span>
+
+                            <div class="endHourMinute">
+                                <select formControlName="endHour">
+                                    <option value="">HH</option>
+                                    @for (hour of hours; track hour) {
+                                    <option [value]="hour">{{ hour }}</option>
+                                    }
+                                </select>
+
+                                <span>:</span>
+
+                                <select formControlName="endMinute">
+                                    <option value="">MM</option>
+                                    @for (minute of minutes; track minute) {
+                                    <option [value]="minute">{{ minute }}</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </td>
+                    }
+                </ng-container>
+            </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit">Save</button>
+</form>
+}

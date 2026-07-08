@@ -1,0 +1,22 @@
+.startEndTime {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.startHourMinute,
+.endHourMinute {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.startHourMinute select,
+.endHourMinute select {
+  width: auto;
+}
+
+td {
+    padding: 10px;
+}
