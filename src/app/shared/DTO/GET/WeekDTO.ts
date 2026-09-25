@@ -5,7 +5,7 @@ export interface WeekDTO {
   year: number;
   weekNumber: number;
   startDate: string;
-  status: Status;
+  status: Status | null;
   employees: EmployeeDTO[];
   assignments: ShiftAssignmentDTO[];
   existingWeek: boolean;

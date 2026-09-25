@@ -1,5 +1,19 @@
-:host {
-  display: block;
+.controlBar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: solid 1px;
+  gap: 16px;
+}
+
+.year-section, .week-section,
+.start-section, .status-section {
+  display: flex;
+}
+
+.view-toggle span.active {
+  background: #2563eb;      /* active background */
+  color: #fff;             /* active text color */
 }
 
 .schedule-grid {
@@ -55,25 +69,21 @@
   background: #fff;
 }
 
-/* .shift {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 100%;
-  padding: 8px 4px;
-  border-radius: 6px;
-  background: #e8f1ff;
-  color: #174a8b;
-  font-size: 0.9rem;
-} */
+.shift-cell .shift-editor input:focus {
+  border-color: #2563eb;
+}
+
 
 .empty-shift {
   color: #9ca3af;
 }
 
-button {
+.save-button {
   margin-top: 16px;
+}
+
+.hidden {
+  display: none;
 }
 
 .shift-editor {
@@ -89,4 +99,49 @@ button {
   padding: 4px;
   text-align: center;
   font-size: 0.9rem;
+}
+
+/* ACCORDION STYLES */
+.time-picker-accordion {
+  grid-column: 1 / -1; /* span all 8 columns */
+  padding: 10px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.time-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.close-picker {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.time-picker-values {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.time-option {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.time-option:hover {
+  background: #f3f4f6;
 }

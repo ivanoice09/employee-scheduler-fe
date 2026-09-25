@@ -48,6 +48,12 @@ export class Schedule implements OnInit {
 
   currentWeekStartDate = '';
 
+  /**
+   * 'edit' = form with input boxes
+   * 'read' = plain text (HH:MM–HH:MM or OFF)
+   */
+  viewMode: 'edit' | 'read' = 'edit';
+
   ngOnInit(): void {
     this.route.paramMap
       .pipe(
@@ -110,6 +116,59 @@ export class Schedule implements OnInit {
 
   getShifts(employeeIndex: number): FormArray {
     return this.assignmentsFormArray.at(employeeIndex).get('shifts') as FormArray;
+  }
+
+  /**
+   * True when week.status is not null (DRAFT, PUBLISHED, or LOCKED).
+   * This controls whether the toggle is enabled.
+   */
+  get isWeekLocked(): boolean {
+    const week = this.weekSubject.getValue();
+    return week?.status != null;
+  }
+
+  /**
+   * Toggle between 'edit' and 'read' modes.
+   * Only allowed when isWeekLocked is true.
+   */
+  toggleViewMode(): void {
+    if (!this.isWeekLocked) {
+      return;
+    }
+    this.viewMode = this.viewMode === 'edit' ? 'read' : 'edit';
+  }
+
+  /**
+   * Helpers for displaying shift text in read mode.
+   */
+  getShiftForCell(
+    employeeIndex: number,
+    dayIndex: number,
+  ): { startsAt: string | null; endsAt: string | null } | null {
+    const shifts = this.getShifts(employeeIndex);
+    const shiftGroup = shifts.at(dayIndex) as FormGroup;
+
+    const startHour = shiftGroup.get('startHour')?.value as string;
+    const startMinute = shiftGroup.get('startMinute')?.value as string;
+    const endHour = shiftGroup.get('endHour')?.value as string;
+    const endMinute = shiftGroup.get('endMinute')?.value as string;
+
+    const startsAt = this.toTime(startHour, startMinute);
+    const endsAt = this.toTime(endHour, endMinute);
+
+    if (!startsAt || !endsAt) {
+      return null;
+    }
+
+    return { startsAt, endsAt };
+  }
+
+  formatShiftText(employeeIndex: number, dayIndex: number): string {
+    const shift = this.getShiftForCell(employeeIndex, dayIndex);
+    if (!shift) {
+      return 'OFF';
+    }
+    return `${shift.startsAt} – ${shift.endsAt}`;
   }
 
   /**
@@ -209,10 +268,10 @@ export class Schedule implements OnInit {
           })
           .filter((s: any) => s !== null);
 
-          return {
-            employeeId: assignment.employeeId,
-            shifts,
-          };
+        return {
+          employeeId: assignment.employeeId,
+          shifts,
+        };
       }),
     };
 
@@ -255,6 +314,59 @@ export class Schedule implements OnInit {
   private blurAllTimeInputs(): void {
     const inputs = document.querySelectorAll<HTMLInputElement>('input[data-time-type]');
     inputs.forEach((input) => input.blur());
+  }
+
+  // ================
+  // ACCORDION SET UP
+  // ================
+
+  /**
+   * Which input is currently active:
+   * - employeeIndex
+   * - dayIndex
+   * - fieldType: 'startHour' | 'startMinute' | 'endHour' | 'endMinute'
+   */
+  activeTimeInput: {
+    employeeIndex: number;
+    dayIndex: number;
+    fieldType: 'startHour' | 'startMinute' | 'endHour' | 'endMinute';
+  } | null = null;
+
+  /**
+   * Called on focus of hour/minute inputs.
+   */
+  openTimePicker(
+    employeeIndex: number,
+    dayIndex: number,
+    fieldType: 'startHour' | 'startMinute' | 'endHour' | 'endMinute',
+  ): void {
+    this.activeTimeInput = { employeeIndex, dayIndex, fieldType };
+  }
+
+  /**
+   * Called when user picks a value from the accordion.
+   */
+  pickTimeValue(value: string): void {
+    if (!this.activeTimeInput) {
+      return;
+    }
+
+    const { employeeIndex, dayIndex, fieldType } = this.activeTimeInput;
+
+    const shiftGroup = this.getShifts(employeeIndex).at(dayIndex) as FormGroup;
+    const control = shiftGroup.get(fieldType);
+
+    control?.setValue(value);
+
+    // Close accordion after picking
+    this.activeTimeInput = null;
+  }
+
+  /**
+   * Close accordion when clicking outside or pressing Escape (optional but nice).
+   */
+  closeTimePicker(): void {
+    this.activeTimeInput = null;
   }
 }
 
