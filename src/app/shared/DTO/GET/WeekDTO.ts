@@ -1,13 +1,13 @@
-import { EmployeeShiftAssignmentDTO } from "../POST/EmployeeShiftAssignmentDTO ";
+import { ShiftAssignmentDTO } from "../POST/ShiftAssignmentDTO ";
 import { EmployeeDTO } from "./EmployeeDTO";
 
-export interface WeekScheduleDTO {
+export interface WeekDTO {
   year: number;
   weekNumber: number;
   startDate: string;
   status: Status;
   employees: EmployeeDTO[];
-  assignments: EmployeeShiftAssignmentDTO[]
+  assignments: ShiftAssignmentDTO[];
   existingWeek: boolean;
 }
 

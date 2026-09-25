@@ -1,4 +1,4 @@
-export interface ShiftAssignmentDTO {
+export interface ShiftDTO {
     actualDate: string;
     startsAt: string | null;
     endsAt: string | null;

@@ -1,10 +1,13 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { WeekScheduleDTO } from '../../shared/DTO/GET/WeekScheduleDTO';
-import { Observable } from 'rxjs';
+import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
+import { BehaviorSubject, Observable, switchMap } from 'rxjs';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { SaveWeekScheduleDTO } from '../../shared/DTO/POST/SaveWeekScheduleDTO ';
+import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
+import { ActivatedRoute } from '@angular/router';
+import { ShiftAssignmentDTO } from '../../shared/DTO/POST/ShiftAssignmentDTO ';
+import { ShiftDTO } from '../../shared/DTO/POST/ShiftDTO';
 
 @Component({
   selector: 'app-schedule',
@@ -14,84 +17,91 @@ import { SaveWeekScheduleDTO } from '../../shared/DTO/POST/SaveWeekScheduleDTO '
   styleUrl: './schedule.css',
 })
 export class Schedule implements OnInit {
-  weekSchedule$!: Observable<WeekScheduleDTO>;
+  // weekSchedule$!: Observable<WeekDTO>;
+
+  private weekSubject = new BehaviorSubject<WeekDTO | null>(null);
+
+  week$ = this.weekSubject.asObservable();
+
+  readonly dayIndexes = Array.from({ length: 7 }, (_, index) => index);
 
   dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  hours = Array.from(
-    // makes a new array with 24 items
-    { length: 24 },
-    // this is a callback run for each item, where i is the index from 0 to 23. 
-    // The underscore is just a placeholder to ignore the first argument.
-    (_, i) => 
-    //  turns the number into a 2-digit string, so 0 becomes "00" and 9 becomes "09"
-    i.toString().padStart(2, '0')
-  );
+  /**
+   * Makes a new array with 24 items.
+   * The underscore is just a placeholder to ignore the first argument.
+   * Turns the number into a 2-digit string, so 0 becomes "00" and 9 becomes "09"
+   */
+  hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
 
   minutes = ['00', '15', '30', '45'];
 
-  private fb = inject(FormBuilder);
+  private formBuilder = inject(FormBuilder);
   private scheduleService = inject(ScheduleService);
+  private route = inject(ActivatedRoute);
 
-  form = this.fb.group({
+  form = this.formBuilder.group({
     year: [0],
     weekNumber: [0],
-    assignments: this.fb.array<FormGroup>([]),
+    assignments: this.formBuilder.array<FormGroup>([]),
   });
 
   currentWeekStartDate = '';
 
-  ngOnInit() {
-    this.weekSchedule$ = this.scheduleService.getWeek(2026, 28);
+  ngOnInit(): void {
+    this.route.paramMap
+      .pipe(
+        switchMap((params) => {
+          const year = Number(params.get('year'));
+          const week = Number(params.get('week'));
+          return this.scheduleService.getWeek(year, week);
+        }),
+      )
+      .subscribe((week) => {
+        this.weekSubject.next(week);
+        this.currentWeekStartDate = week.startDate;
 
-    this.weekSchedule$.subscribe((week: WeekScheduleDTO) => {
-      this.currentWeekStartDate = week.startDate;
+        this.form.patchValue({
+          year: week.year,
+          weekNumber: week.weekNumber,
+        });
 
-      this.form.patchValue({
-        year: week.year,
-        weekNumber: week.weekNumber,
+        const assignments = this.assignmentsFormArray;
+        assignments.clear();
+
+        const assignmentByEmployeeId = new Map(week.assignments.map((a) => [a.employeeId, a]));
+
+        for (const employee of week.employees) {
+          const employeeAssignment = assignmentByEmployeeId.get(employee.employeeId);
+
+          assignments.push(
+            this.formBuilder.group({
+              employeeId: [employee.employeeId],
+              employeeName: [`${employee.firstName} ${employee.lastName}`],
+              shifts: this.formBuilder.array(
+                Array.from({ length: 7 }, (_, dayIndex) => {
+                  const actualDate = this.formatDateForApi(week.startDate, dayIndex);
+
+                  const savedShift = employeeAssignment?.shifts.find(
+                    (s) => s.actualDate === actualDate,
+                  );
+
+                  const start = this.splitTime(savedShift?.startsAt ?? null);
+                  const end = this.splitTime(savedShift?.endsAt ?? null);
+
+                  return this.formBuilder.group({
+                    actualDate: [actualDate],
+                    startHour: [start.hour],
+                    startMinute: [start.minute],
+                    endHour: [end.hour],
+                    endMinute: [end.minute],
+                  });
+                }),
+              ),
+            }),
+          );
+        }
       });
-
-      const assignments = this.assignmentsFormArray;
-      assignments.clear();
-
-      const assignmentByEmployeeId = new Map(
-        week.assignments.map(a => [a.employeeId, a])
-      );
-
-      for (const employee of week.employees) {
-        const employeeAssignment = assignmentByEmployeeId.get(employee.employeeId);
-
-        assignments.push(
-          this.fb.group({
-            employeeId: [employee.employeeId],
-            employeeName: [`${employee.firstName} ${employee.lastName}`],
-            shifts: this.fb.array(
-              Array.from({ length: 7 }, (_, dayIndex) => {
-                const actualDate = this.formatDateForApi(week.startDate, dayIndex);
-
-                const savedShift = employeeAssignment?.shifts.find(
-                  s => s.actualDate === actualDate
-                );
-
-                const start = this.splitTime(savedShift?.startsAt ?? null);
-                const end = this.splitTime(savedShift?.endsAt ?? null);
-
-                return this.fb.group({
-                  actualDate: [actualDate],
-                  startHour: [start.hour],
-                  startMinute: [start.minute],
-                  endHour: [end.hour],
-                  endMinute: [end.minute],
-                });
-              })
-            ),
-          })
-        );
-      }
-
-    });
-
   }
 
   get assignmentsFormArray(): FormArray {
@@ -102,28 +112,51 @@ export class Schedule implements OnInit {
     return this.assignmentsFormArray.at(employeeIndex).get('shifts') as FormArray;
   }
 
-  getDateForDay(
-    startDate: string, // expects a date string argument in "YYYY-MM-DD" format
-    offset: number // how many days to move forward or backward
-  ): Date // returns a Date object 
-  {
+  /**
+   * Typing 0 → blur → 00
+   * Typing 9 → blur → 09
+   * Typing 25 in hour → input clamps it to 23
+   * Typing 99 in hour → also clamped to 23
+   */
+  formatTimeInputOnBlur(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const timeType = input.dataset['timeType'] as 'hour' | 'minute' | undefined;
+    const raw = input.value.trim();
 
-    // Split the date string
-    const [year, month, day] // 3) the mapped numbers are assigned to year, month, and day by array destructuring
-      = startDate.split('-') // 1) turns "2026-07-08" into ["2026", "07", "08"]
-      .map(Number); // 2) converts those strings into numbers: [2026, 7, 8]
+    if (!raw) {
+      input.value = '';
+      return;
+    }
 
-    // Create a Date object
-    const date = new Date(
-      year, 
-      month - 1, // new Date(year, monthIndex, day) uses a zero-based month index, so January is 0 and December is 11, that is why month - 1
-      day
-    );
+    const num = Number(raw);
 
-    date.setDate( // 3) updates the Date object
-      date.getDate() //  1) gets the current day number
-      + offset // 2) adds the number of days you want to move
-    );
+    if (!/^\d{1,2}$/.test(raw)) {
+      input.value = '00';
+      return;
+    }
+
+    if (timeType === 'hour') {
+      if (num < 0 || num > 23) {
+        input.value = '';
+        return;
+      }
+
+      input.value = num.toString().padStart(2, '0');
+    } else if (timeType === 'minute') {
+      if (num < 0 || num > 59) {
+        input.value = '00';
+        return;
+      }
+      input.value = num.toString().padStart(2, '0');
+    }
+  }
+
+  getDateForDay(startDate: string, offset: number): Date {
+    const [year, month, day] = startDate.split('-').map(Number);
+
+    const date = new Date(year, month - 1, day);
+
+    date.setDate(date.getDate() + offset);
 
     return date;
   }
@@ -136,46 +169,96 @@ export class Schedule implements OnInit {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  private toTime(hour: string, minute: string): string | null {
-    if (!hour || !minute) {
-      return null;
-    }
-
-    return `${hour}:${minute}`;
-  }
-
   private splitTime(time: string | null): { hour: string; minute: string } {
     if (!time) {
-      return { hour: '', minute: '' };
+      return { hour: '', minute: '00' };
     }
 
     const [hour, minute] = time.split(':');
+
     return {
       hour: hour ?? '',
-      minute: minute ?? '',
+      minute: minute ?? '00',
     };
   }
 
   save(): void {
+    this.blurAllTimeInputs();
+
     const raw = this.form.getRawValue();
 
-    const payload: SaveWeekScheduleDTO = {
+    const payload: SaveWeekDTO = {
       year: raw.year ?? 0,
       weekNumber: raw.weekNumber ?? 0,
       weekStartDate: this.currentWeekStartDate,
-      assignments: (raw.assignments ?? []).map((assignment: any) => ({
-        employeeId: assignment.employeeId,
-        shifts: (assignment.shifts ?? []).map((shift: any) => ({
-          actualDate: shift.actualDate,
-          startsAt: this.toTime(shift.startHour, shift.startMinute),
-          endsAt: this.toTime(shift.endHour, shift.endMinute),
-        })),
-      })),
+      assignments: (raw.assignments ?? []).map((assignment: any) => {
+        const shifts = (assignment.shifts ?? [])
+          .map((shift: any) => {
+            const startsAt = this.toTime(shift.startHour, shift.startMinute);
+            const endsAt = this.toTime(shift.endHour, shift.endMinute);
+
+            if (!startsAt || !endsAt) {
+              return null;
+            }
+
+            return {
+              actualDate: shift.actualDate,
+              startsAt,
+              endsAt,
+            };
+          })
+          .filter((s: any) => s !== null);
+
+          return {
+            employeeId: assignment.employeeId,
+            shifts,
+          };
+      }),
     };
+
+    console.log('Sending payload:', payload);
 
     this.scheduleService.saveWeek(payload).subscribe({
       next: () => console.log('Saved'),
       error: (err) => console.error(err),
     });
   }
+
+  private toTime(hour: string, minute: string): string | null {
+    if (!hour || !minute) {
+      return null;
+    }
+
+    if (!/^\d{1,2}$/.test(hour) || !/^\d{1,2}$/.test(minute)) {
+      return null;
+    }
+
+    const hourNumber = Number(hour);
+    const minuteNumber = Number(minute);
+
+    if (hourNumber < 0 || hourNumber > 23) {
+      return null;
+    }
+
+    if (minuteNumber < 0 || minuteNumber > 59) {
+      return null;
+    }
+
+    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+  }
+
+  /**
+   * EDGE CASE FUNCTION
+   * The user might not "unfocus" one of the input box before saving,
+   * so this function removes the focus and then clamp it to 00.
+   */
+  private blurAllTimeInputs(): void {
+    const inputs = document.querySelectorAll<HTMLInputElement>('input[data-time-type]');
+    inputs.forEach((input) => input.blur());
+  }
 }
+
+@Component({
+  template: '',
+})
+export class RedirectComponent {}
