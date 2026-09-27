@@ -1,1 +1,1 @@
-Full documentation is located at [employee-scheduler-docs]().
+Full documentation is located at [employee-scheduler-docs](https://github.com/ivanoice09/employee-scheduler-docs).
