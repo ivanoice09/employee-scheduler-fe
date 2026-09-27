@@ -1,18 +1,16 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
-import { BehaviorSubject, Observable, switchMap } from 'rxjs';
+import { BehaviorSubject, switchMap } from 'rxjs';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
 import { ActivatedRoute } from '@angular/router';
-import { ShiftAssignmentDTO } from '../../shared/DTO/POST/ShiftAssignmentDTO ';
-import { ShiftDTO } from '../../shared/DTO/POST/ShiftDTO';
 
 @Component({
   selector: 'app-schedule',
   standalone: true,
-  imports: [AsyncPipe, DatePipe, ReactiveFormsModule],
+  imports: [AsyncPipe, DatePipe, ReactiveFormsModule, SlicePipe, UpperCasePipe],
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
 })
@@ -83,7 +81,8 @@ export class Schedule implements OnInit {
           assignments.push(
             this.formBuilder.group({
               employeeId: [employee.employeeId],
-              employeeName: [`${employee.firstName} ${employee.lastName}`],
+              // employeeName: [`${employee.firstName} ${employee.lastName}`],
+              employeeName: [employee.firstName],
               shifts: this.formBuilder.array(
                 Array.from({ length: 7 }, (_, dayIndex) => {
                   const actualDate = this.formatDateForApi(week.startDate, dayIndex);
@@ -190,7 +189,7 @@ export class Schedule implements OnInit {
     const num = Number(raw);
 
     if (!/^\d{1,2}$/.test(raw)) {
-      input.value = '00';
+      input.value = '';
       return;
     }
 
@@ -201,6 +200,7 @@ export class Schedule implements OnInit {
       }
 
       input.value = num.toString().padStart(2, '0');
+
     } else if (timeType === 'minute') {
       if (num < 0 || num > 59) {
         input.value = '00';

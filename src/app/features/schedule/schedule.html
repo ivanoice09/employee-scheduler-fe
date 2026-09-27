@@ -1,19 +1,19 @@
 @if (week$ | async; as week) {
 <div class="controlBar">
     <div class="year-section">
-        <span>YEAR: </span>
+        <span>YEAR:</span>
         <span> {{ week.year }}</span>
     </div>
     <div class="week-section">
-        <span>WEEK: </span>
+        <span>WEEK:</span>
         <span> {{ week.weekNumber }}</span>
     </div>
     <div class="start-section">
-        <span>START: </span>
-        <span> {{ week.startDate }}</span>
+        <span>START:</span>
+        <span> {{ week.startDate | date: 'MMM dd' | uppercase}}</span>
     </div>
     <div class="status-section">
-        <span>STATUS: </span>
+        <span>STATUS:</span>
         <span> {{ week.status ?? 'undefined' }} </span>
     </div>
 
@@ -33,15 +33,15 @@
     <div class="schedule-grid">
         <!-- Header row -->
         <div class="header-cell employee-header">
-            <h5>Employees</h5>
+            <span>Employees</span>
         </div>
 
         @for (dayName of dayNames; track $index) {
         <div class="header-cell specific-date">
-            <h5>{{ dayName }}</h5>
-            <h5>
+            <span>{{ dayName | slice:0:3 | uppercase }}</span>
+            <span>
                 {{ getDateForDay(week.startDate, $index) | date: 'dd' }}
-            </h5>
+            </span>
         </div>
         }
 
@@ -158,7 +158,7 @@
                                 }
 
                                 <button type="button" class="close-picker" (click)="closeTimePicker()">
-                                    X
+                                    <i class="bi bi-x-lg "></i>
                                 </button>
                             </div>
                         </div>
