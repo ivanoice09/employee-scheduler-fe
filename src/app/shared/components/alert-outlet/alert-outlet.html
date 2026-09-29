@@ -1,0 +1,22 @@
+<div class="alert-stack">
+  @for (alert of alertService.alerts(); track alert.id) {
+    @if (alert.visible) {
+      <div
+        class="alert"
+        [class.success]="alert.type === 'success'"
+        [class.error]="alert.type === 'error'"
+        [class.info]="alert.type === 'info'"
+        [class.warning]="alert.type === 'warning'"
+        animate.enter="alert-enter"
+        animate.leave="alert-leave"
+      >
+        <div class="alert__content">
+          <span>{{ alert.message }}</span>
+          <button type="button" class="alert__close" (click)="hide(alert.id)">
+            ×
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>

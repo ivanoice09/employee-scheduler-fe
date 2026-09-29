@@ -1,11 +1,12 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
-import { BehaviorSubject, switchMap } from 'rxjs';
+import { BehaviorSubject, Subject, switchMap, takeUntil, timer } from 'rxjs';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
 import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
 import { ActivatedRoute } from '@angular/router';
+import { AlertService } from '../../utils/alert-service';
 
 @Component({
   selector: 'app-schedule',
@@ -37,6 +38,8 @@ export class Schedule implements OnInit {
   private formBuilder = inject(FormBuilder);
   private scheduleService = inject(ScheduleService);
   private route = inject(ActivatedRoute);
+  private alertService = inject(AlertService);
+  private destroy$ = new Subject<void>();
 
   form = this.formBuilder.group({
     year: [0],
@@ -51,6 +54,9 @@ export class Schedule implements OnInit {
    * 'read' = plain text (HH:MM–HH:MM or OFF)
    */
   viewMode: 'edit' | 'read' = 'edit';
+
+  sessionExpiresAt?: Date;
+  showExpiryWarning = false;
 
   ngOnInit(): void {
     this.route.paramMap
@@ -202,7 +208,6 @@ export class Schedule implements OnInit {
       }
 
       input.value = num.toString().padStart(2, '0');
-
     } else if (timeType === 'minute') {
       if (num < 0 || num > 59) {
         input.value = '00';
