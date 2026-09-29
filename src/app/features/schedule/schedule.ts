@@ -106,6 +106,8 @@ export class Schedule implements OnInit {
             }),
           );
         }
+
+        console.log(document.cookie);
       });
   }
 

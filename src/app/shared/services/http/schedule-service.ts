@@ -12,10 +12,17 @@ export class ScheduleService {
     private http = inject(HttpClient);
 
     getWeek(year: number, weekNumber: number): Observable<WeekDTO> {
-        return this.http.get<WeekDTO>(`${this.baseUrl}/${year}/${weekNumber}`);
+        return this.http.get<WeekDTO>(
+            `${this.baseUrl}/${year}/${weekNumber}`,
+            { withCredentials: true }
+        );
     }
 
     saveWeek(payload: SaveWeekDTO): Observable<void> {
-        return this.http.post<void>(`${this.baseUrl}/save`, payload);
+        return this.http.post<void>(
+            `${this.baseUrl}/save`,
+            payload,
+            { withCredentials: true }
+        );
     }
 }

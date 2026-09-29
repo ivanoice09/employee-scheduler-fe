@@ -143,7 +143,7 @@
   background: #f3f4f6;
 }
 
-@media (max-width: 1367px) {
+@media (max-width: 1450px) {
   .schedule-grid {
     grid-template-columns: max-content repeat(7, minmax(110px, 1fr));
   }
