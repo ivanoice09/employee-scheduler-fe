@@ -7,6 +7,7 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular
 import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
 import { ActivatedRoute } from '@angular/router';
 import { AlertService } from '../../utils/alert-service';
+import { DemoSessionService } from '../../shared/services/http/demo-session-service';
 
 @Component({
   selector: 'app-schedule',
@@ -38,8 +39,7 @@ export class Schedule implements OnInit {
   private formBuilder = inject(FormBuilder);
   private scheduleService = inject(ScheduleService);
   private route = inject(ActivatedRoute);
-  private alertService = inject(AlertService);
-  private destroy$ = new Subject<void>();
+  private demoSessionService = inject(DemoSessionService);
 
   form = this.formBuilder.group({
     year: [0],
@@ -55,10 +55,19 @@ export class Schedule implements OnInit {
    */
   viewMode: 'edit' | 'read' = 'edit';
 
-  sessionExpiresAt?: Date;
-  showExpiryWarning = false;
+  timeRemaining$ = this.demoSessionService.timeRemainingSec$;
+  isExpired = false;
 
   ngOnInit(): void {
+    // 1) Start countdown timer (runs independently of route params)
+    this.timeRemaining$.subscribe((sec) => {
+      if (sec === 0 && !this.isExpired) {
+        this.isExpired = true;
+        setTimeout(() => window.location.reload(), 1500); // soft reload
+      }
+    });
+
+    // 2) Load schedule when route params change
     this.route.paramMap
       .pipe(
         switchMap((params) => {
@@ -112,8 +121,6 @@ export class Schedule implements OnInit {
             }),
           );
         }
-
-        console.log(document.cookie);
       });
   }
 

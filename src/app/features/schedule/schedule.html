@@ -16,7 +16,6 @@
         <span>STATUS:</span>
         <span> {{ week.status ?? 'undefined' }} </span>
     </div>
-
     <div class="view-mode-section">
         <button
             type="button"
@@ -27,6 +26,7 @@
             {{ viewMode === 'edit' ? 'View' : 'Edit' }}
         </button>
     </div>
+    <div>Session expires: {{ timeRemaining$ | async }}s</div>
 </div>
 <form [formGroup]="form" (ngSubmit)="save()">
 
