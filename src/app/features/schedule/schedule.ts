@@ -289,7 +289,7 @@ export class Schedule implements OnInit {
       }),
     };
 
-    console.log('Sending payload:', payload);
+    // console.log('Sending payload:', payload);
 
     this.scheduleService.saveWeek(payload).subscribe({
       next: () => console.log('Saved'),
