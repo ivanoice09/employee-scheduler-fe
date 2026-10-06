@@ -143,6 +143,16 @@
   background: #f3f4f6;
 }
 
+.demo-session-timer {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.4rem;
+  background: #fff3cd;
+  color: #664d03;
+  font-weight: 600;
+}
+
 @media (max-width: 1450px) {
   .schedule-grid {
     grid-template-columns: max-content repeat(7, minmax(110px, 1fr));

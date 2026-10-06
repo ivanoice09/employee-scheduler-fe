@@ -11,8 +11,8 @@ export interface UiAlert {
 }
 
 @Service()
-export class AlertService {
-  readonly alerts = signal<UiAlert[]>([]);
+export class AlertUtil {
+  private readonly alerts = signal<UiAlert[]>([]);
 
   show(message: string, type: UiAlert['type'], duration = 3500) {
     const id = crypto.randomUUID();
@@ -22,15 +22,11 @@ export class AlertService {
     window.setTimeout(() => this.hide(id), duration);
   }
 
-    hide(id: string) {
-    this.alerts.update(curr => 
-      curr.map(a => 
-        (a.id === id ? { ...a, visible: false } : a)
-      )
-    );
+  hide(id: string) {
+    this.alerts.update((curr) => curr.map((a) => (a.id === id ? { ...a, visible: false } : a)));
 
     window.setTimeout(() => {
-      this.alerts.update(curr => curr.filter((a) => a.id !== id));
+      this.alerts.update((curr) => curr.filter((a) => a.id !== id));
     }, 320);
   }
 }

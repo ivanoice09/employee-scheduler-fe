@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { WeekUtil } from '../utils/week-util';
+import { WeekUtil } from '../shared/services/utils/week-util';
 
 export const currentWeekRedirectGuard: CanActivateFn = () => {
   const router = inject(Router);

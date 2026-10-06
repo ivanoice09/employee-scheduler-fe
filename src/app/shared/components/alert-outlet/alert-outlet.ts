@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { AlertService } from '../../../utils/alert-service';
+import { AlertUtil } from '../../services/utils/alert-util';
 
 @Component({
   selector: 'app-alert-outlet',
@@ -8,7 +8,7 @@ import { AlertService } from '../../../utils/alert-service';
   styleUrl: './alert-outlet.css',
 })
 export class AlertOutlet {
-  readonly alertService = inject(AlertService);
+  readonly alertService = inject(AlertUtil);
 
   hide(id: string) {
     this.alertService.hide(id);

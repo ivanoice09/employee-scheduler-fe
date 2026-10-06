@@ -1,22 +1,30 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
-import { BehaviorSubject, Subject, switchMap, takeUntil, timer } from 'rxjs';
-import { ScheduleService } from '../../shared/services/http/schedule-service';
 import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
 import { ActivatedRoute } from '@angular/router';
-import { AlertService } from '../../utils/alert-service';
-import { DemoSessionService } from '../../shared/services/http/demo-session-service';
+import { BehaviorSubject, filter, pairwise, startWith, Subject, switchMap, takeUntil } from 'rxjs';
+import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
+import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
+import { DemoSessionHelper } from '../../shared/services/helpers/demo-session-helper';
+import { ScheduleService } from '../../shared/services/http/schedule-service';
+import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
+import { AlertUtil } from '../../shared/services/utils/alert-util';
 
 @Component({
   selector: 'app-schedule',
   standalone: true,
-  imports: [AsyncPipe, DatePipe, ReactiveFormsModule, SlicePipe, UpperCasePipe],
+  imports: [
+    AsyncPipe,
+    DatePipe,
+    ReactiveFormsModule,
+    SlicePipe,
+    UpperCasePipe,
+    DemoSessionTimerPipe,
+  ],
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
 })
-export class Schedule implements OnInit {
+export class Schedule implements OnInit, OnDestroy {
   // weekSchedule$!: Observable<WeekDTO>;
 
   private weekSubject = new BehaviorSubject<WeekDTO | null>(null);
@@ -39,7 +47,7 @@ export class Schedule implements OnInit {
   private formBuilder = inject(FormBuilder);
   private scheduleService = inject(ScheduleService);
   private route = inject(ActivatedRoute);
-  private demoSessionService = inject(DemoSessionService);
+  private alertUtil = inject(AlertUtil);
 
   form = this.formBuilder.group({
     year: [0],
@@ -55,18 +63,11 @@ export class Schedule implements OnInit {
    */
   viewMode: 'edit' | 'read' = 'edit';
 
-  timeRemaining$ = this.demoSessionService.timeRemainingSec$;
-  isExpired = false;
+  private readonly destroy$ = new Subject<void>();
+  private demoSessionHelper = inject(DemoSessionHelper);
+  remainingSeconds$ = this.demoSessionHelper.remainingSeconds$;
 
   ngOnInit(): void {
-    // 1) Start countdown timer (runs independently of route params)
-    this.timeRemaining$.subscribe((sec) => {
-      if (sec === 0 && !this.isExpired) {
-        this.isExpired = true;
-        setTimeout(() => window.location.reload(), 1500); // soft reload
-      }
-    });
-
     // 2) Load schedule when route params change
     this.route.paramMap
       .pipe(
@@ -75,53 +76,116 @@ export class Schedule implements OnInit {
           const week = Number(params.get('week'));
           return this.scheduleService.getWeek(year, week);
         }),
+        takeUntil(this.destroy$),
       )
       .subscribe((week) => {
-        this.weekSubject.next(week);
-        this.currentWeekStartDate = week.startDate;
-
-        this.form.patchValue({
-          year: week.year,
-          weekNumber: week.weekNumber,
-        });
-
-        const assignments = this.assignmentsFormArray;
-        assignments.clear();
-
-        const assignmentByEmployeeId = new Map(week.assignments.map((a) => [a.employeeId, a]));
-
-        for (const employee of week.employees) {
-          const employeeAssignment = assignmentByEmployeeId.get(employee.employeeId);
-
-          assignments.push(
-            this.formBuilder.group({
-              employeeId: [employee.employeeId],
-              // employeeName: [`${employee.firstName} ${employee.lastName}`],
-              employeeName: [employee.firstName],
-              shifts: this.formBuilder.array(
-                Array.from({ length: 7 }, (_, dayIndex) => {
-                  const actualDate = this.formatDateForApi(week.startDate, dayIndex);
-
-                  const savedShift = employeeAssignment?.shifts.find(
-                    (s) => s.actualDate === actualDate,
-                  );
-
-                  const start = this.splitTime(savedShift?.startsAt ?? null);
-                  const end = this.splitTime(savedShift?.endsAt ?? null);
-
-                  return this.formBuilder.group({
-                    actualDate: [actualDate],
-                    startHour: [start.hour],
-                    startMinute: [start.minute],
-                    endHour: [end.hour],
-                    endMinute: [end.minute],
-                  });
-                }),
-              ),
-            }),
-          );
-        }
+        this.loadWeekIntoForm(week);
       });
+
+    this.demoSessionHelper.remainingSeconds$
+      .pipe(
+        // startWith(null),
+        // pairwise(),
+        // filter(
+        //   ([previous, current]) =>
+        //     previous !== 0 && current === 0,
+        // ),
+        filter((seconds): seconds is number => seconds === 0),
+        takeUntil(this.destroy$),
+      )
+      .subscribe(() => {
+        console.log('Timer reached zero');
+
+        this.alertUtil.show('Demo has expired', 'info');
+
+        this.reloadCurrentWeek();
+      });
+  }
+
+  private loadWeekIntoForm(week: WeekDTO): void {
+    this.weekSubject.next(week);
+    this.currentWeekStartDate = week.startDate;
+
+    this.form.patchValue({
+      year: week.year,
+      weekNumber: week.weekNumber,
+    });
+
+    const assignments = this.assignmentsFormArray;
+    assignments.clear();
+
+    const assignmentByEmployeeId = new Map(week.assignments.map((a) => [a.employeeId, a]));
+
+    for (const employee of week.employees) {
+      const employeeAssignment = assignmentByEmployeeId.get(employee.employeeId);
+
+      assignments.push(
+        this.formBuilder.group({
+          employeeId: [employee.employeeId],
+          // employeeName: [`${employee.firstName} ${employee.lastName}`],
+          employeeName: [employee.firstName],
+          shifts: this.formBuilder.array(
+            Array.from({ length: 7 }, (_, dayIndex) => {
+              const actualDate = this.formatDateForApi(week.startDate, dayIndex);
+
+              const savedShift = employeeAssignment?.shifts.find(
+                (s) => s.actualDate === actualDate,
+              );
+
+              const start = this.splitTime(savedShift?.startsAt ?? null);
+              const end = this.splitTime(savedShift?.endsAt ?? null);
+
+              return this.formBuilder.group({
+                actualDate: [actualDate],
+                startHour: [start.hour],
+                startMinute: [start.minute],
+                endHour: [end.hour],
+                endMinute: [end.minute],
+              });
+            }),
+          ),
+        }),
+      );
+    }
+  }
+
+  private reloadCurrentWeek(): void {
+    const week = this.weekSubject.getValue();
+
+    if (!week) {
+      return;
+    }
+
+    // Immediately remove the old shift values from the UI.
+    this.clearScheduleForm();
+
+    this.scheduleService
+      .getWeek(week.year, week.weekNumber)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (newWeek) => {
+          this.loadWeekIntoForm(newWeek);
+        },
+        error: (error) => {
+          console.error('Could not reload schedule:', error);
+        },
+      });
+  }
+
+  private clearScheduleForm(): void {
+    this.form.reset({
+      year: 0,
+      weekNumber: 0,
+    });
+
+    this.assignmentsFormArray.clear();
+    this.weekSubject.next(null);
+    this.currentWeekStartDate = '';
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get assignmentsFormArray(): FormArray {
@@ -292,7 +356,10 @@ export class Schedule implements OnInit {
     // console.log('Sending payload:', payload);
 
     this.scheduleService.saveWeek(payload).subscribe({
-      next: () => console.log('Saved'),
+      next: () => {
+        console.log('Saved');
+        this.alertUtil.show('Save successful', 'success');
+      },
       error: (err) => console.error(err),
     });
   }
