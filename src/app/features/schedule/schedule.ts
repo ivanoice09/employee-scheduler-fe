@@ -96,7 +96,7 @@ export class Schedule implements OnInit, OnDestroy {
       .subscribe(() => {
         console.log('Timer reached zero');
 
-        this.alertUtil.show('Demo has expired', 'info');
+        this.alertUtil.show('Demo has expired', 'warning');
 
         this.reloadCurrentWeek();
       });

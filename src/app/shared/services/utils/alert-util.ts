@@ -12,7 +12,7 @@ export interface UiAlert {
 
 @Service()
 export class AlertUtil {
-  private readonly alerts = signal<UiAlert[]>([]);
+  readonly alerts = signal<UiAlert[]>([]);
 
   show(message: string, type: UiAlert['type'], duration = 3500) {
     const id = crypto.randomUUID();
