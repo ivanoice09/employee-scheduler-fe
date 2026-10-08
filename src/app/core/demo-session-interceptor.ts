@@ -6,8 +6,6 @@ import { tap } from 'rxjs';
 export const demoSessionInterceptor: HttpInterceptorFn = (req, next) => {
   const demoSessionHelper = inject(DemoSessionHelper);
 
-  console.log('[DemoInterceptor] request:', req.url);
-
   return next(req).pipe(
     tap((event: HttpEvent<unknown>) => {
       if (!(event instanceof HttpResponse)) {

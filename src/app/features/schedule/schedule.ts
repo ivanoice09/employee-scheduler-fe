@@ -2,12 +2,12 @@ import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, filter, pairwise, startWith, Subject, switchMap, takeUntil } from 'rxjs';
+import { BehaviorSubject, filter, Subject, switchMap, takeUntil } from 'rxjs';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
 import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
+import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
 import { DemoSessionHelper } from '../../shared/services/helpers/demo-session-helper';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
-import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
 import { AlertUtil } from '../../shared/services/utils/alert-util';
 
 @Component({
@@ -406,6 +406,8 @@ export class Schedule implements OnInit, OnDestroy {
    * - employeeIndex
    * - dayIndex
    * - fieldType: 'startHour' | 'startMinute' | 'endHour' | 'endMinute'
+   * 
+   * USED BY THE TEMPLATE DON'T MODULARIZE.
    */
   activeTimeInput: {
     employeeIndex: number;
@@ -415,6 +417,8 @@ export class Schedule implements OnInit, OnDestroy {
 
   /**
    * Called on focus of hour/minute inputs.
+   * 
+   * USED BY THE TEMPLATE DON'T MODULARIZE.
    */
   openTimePicker(
     employeeIndex: number,
@@ -426,6 +430,8 @@ export class Schedule implements OnInit, OnDestroy {
 
   /**
    * Called when user picks a value from the accordion.
+   * 
+   * USED BY THE TEMPLATE DON'T MODULARIZE.
    */
   pickTimeValue(value: string): void {
     if (!this.activeTimeInput) {
@@ -445,6 +451,8 @@ export class Schedule implements OnInit, OnDestroy {
 
   /**
    * Close accordion when clicking outside or pressing Escape (optional but nice).
+   * 
+   * USED BY THE TEMPLATE DON'T MODULARIZE.
    */
   closeTimePicker(): void {
     this.activeTimeInput = null;
