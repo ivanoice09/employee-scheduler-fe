@@ -1,6 +1,24 @@
 /* You can add global styles to this file, and also import other style files */
 body {
   padding: 30px;
+
+  /* Font from google */
+  font-family: 'Google Sans Code', monospace;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+  font-variation-settings: 'MONO' 1;
+}
+
+/* So that inputs and other elements inherit the body's font */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  color: inherit;
 }
 
 @media (min-width: 1024px) {

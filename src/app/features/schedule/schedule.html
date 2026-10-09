@@ -1,177 +1,172 @@
 @if (week$ | async; as week) {
-<div class="controlBar">
+  <div class="controlBar">
     <div class="year-section">
-        <span>YEAR:</span>
-        <span> {{ week.year }}</span>
+      <span>YEAR:</span>
+      <span> {{ week.year }}</span>
     </div>
     <div class="week-section">
-        <span>WEEK:</span>
-        <span> {{ week.weekNumber }}</span>
+      <span>WEEK:</span>
+      <span> {{ week.weekNumber }}</span>
     </div>
     <div class="start-section">
-        <span>START:</span>
-        <span> {{ week.startDate | date: 'MMM dd' | uppercase}}</span>
+      <span>START:</span>
+      <span> {{ week.startDate | date: 'MMM dd' | uppercase }}</span>
     </div>
     <div class="status-section">
-        <span>STATUS:</span>
-        <span> {{ week.status ?? 'undefined' }} </span>
+      <span>STATUS:</span>
+      <span> {{ week.status ?? 'undefined' }} </span>
     </div>
-    <div class="view-mode-section">
-        <button
-            type="button"
-            class="view-toggle"
-            [disabled]="!isWeekLocked"
-            (click)="toggleViewMode()"
-        >
-            {{ viewMode === 'edit' ? 'View' : 'Edit' }}
-        </button>
-    </div>
+
+    <button
+      type="button"
+      class="fill-button"
+      [disabled]="!isWeekLocked"
+      (click)="toggleViewMode()"
+    >
+      {{ viewMode === 'edit' ? 'VIEW' : 'EDIT' }}
+    </button>
+
     @if (remainingSeconds$ | async; as remainingSeconds) {
-        <div class="demo-session-timer">
-            DEMO: {{ remainingSeconds | demoSessionTimer}}
-        </div>
+      <div class="demo-session-timer">
+        <span style="cursor: default">{{ remainingSeconds | demoSessionTimer }}</span>
+      </div>
     }
-</div>
-<form [formGroup]="form" (ngSubmit)="save()">
 
+  </div>
+  
+  <form [formGroup]="form" (ngSubmit)="save()">
     <div class="schedule-grid">
-        <!-- Header row -->
-        <div class="header-cell employee-header">
-            <span>Employees</span>
-        </div>
+      <!-- Header row -->
+      <div class="header-cell employee-header">
+        <span>EMPLOYEES</span>
+      </div>
 
-        @for (dayName of dayNames; track $index) {
+      @for (dayName of dayNames; track $index) {
         <div class="header-cell specific-date">
-            <span>{{ dayName | slice:0:3 | uppercase }}</span>
-            <span>
-                {{ getDateForDay(week.startDate, $index) | date: 'dd' }}
-            </span>
+          <span>{{ dayName | slice: 0 : 3 | uppercase }}</span>
+          <span>
+            {{ getDateForDay(week.startDate, $index) | date: 'dd' }}
+          </span>
         </div>
-        }
+      }
 
-        <!-- Employee rows -->
-        <ng-container formArrayName="assignments">
-            @for (assignment of assignmentsFormArray.controls; track $index; let employeeIndex = $index) {
-                <ng-container [formGroupName]="employeeIndex">
-                    <div class="employee-cell">
-                        <span>{{ assignment.get('employeeName')?.value }}</span>
+      <!-- Employee rows -->
+      <ng-container formArrayName="assignments">
+        @for (
+          assignment of assignmentsFormArray.controls;
+          track $index;
+          let employeeIndex = $index
+        ) {
+          <ng-container [formGroupName]="employeeIndex">
+            <div class="employee-cell">
+              <span>{{ assignment.get('employeeName')?.value }}</span>
+            </div>
+
+            <ng-container formArrayName="shifts">
+              @for (
+                shift of getShifts(employeeIndex).controls;
+                track $index;
+                let dayIndex = $index
+              ) {
+                <div class="shift-cell">
+                  @if (viewMode === 'edit') {
+                    <div [formGroupName]="dayIndex" class="shift-editor">
+                      <input
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="2"
+                        pattern="[0-9]{0,2}"
+                        placeholder="HH"
+                        formControlName="startHour"
+                        data-time-type="hour"
+                        (blur)="formatTimeInputOnBlur($event)"
+                        (focus)="openTimePicker(employeeIndex, dayIndex, 'startHour')"
+                      />
+
+                      <span>:</span>
+
+                      <input
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="2"
+                        pattern="[0-9]{0,2}"
+                        placeholder="MM"
+                        formControlName="startMinute"
+                        data-time-type="minute"
+                        (blur)="formatTimeInputOnBlur($event)"
+                        (focus)="openTimePicker(employeeIndex, dayIndex, 'startMinute')"
+                      />
+
+                      <span>-</span>
+
+                      <input
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="2"
+                        pattern="[0-9]{0,2}"
+                        placeholder="HH"
+                        formControlName="endHour"
+                        data-time-type="hour"
+                        (blur)="formatTimeInputOnBlur($event)"
+                        (focus)="openTimePicker(employeeIndex, dayIndex, 'endHour')"
+                      />
+
+                      <span>:</span>
+
+                      <input
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="2"
+                        pattern="[0-9]{0,2}"
+                        placeholder="MM"
+                        formControlName="endMinute"
+                        data-time-type="minute"
+                        (blur)="formatTimeInputOnBlur($event)"
+                        (focus)="openTimePicker(employeeIndex, dayIndex, 'endMinute')"
+                      />
                     </div>
+                  } @else {
+                    <span class="shift-text">
+                      {{ formatShiftText(employeeIndex, dayIndex) }}
+                    </span>
+                  }
+                </div>
+              }
+            </ng-container>
 
-                    <ng-container formArrayName="shifts">
-                        @for (
-                            shift of getShifts(employeeIndex).controls;
-                            track $index; 
-                            let dayIndex = $index
-                        ) {
-                            
-                            <div class="shift-cell">
-                                @if (viewMode === 'edit') {
-                                    <div [formGroupName]="dayIndex" class="shift-editor">
-                                        <input 
-                                            type="text"
-                                            inputmode="numeric"
-                                            maxlength="2"
-                                            pattern="[0-9]{0,2}"
-                                            placeholder="HH"
-                                            formControlName="startHour"
-                                            data-time-type="hour"
-                                            (blur)="formatTimeInputOnBlur($event)"
-                                            (focus)="openTimePicker(employeeIndex, dayIndex, 'startHour')"
-                                        />
-
-                                        <span>:</span>
-
-                                        <input
-                                            type="text"
-                                            inputmode="numeric"
-                                            maxlength="2"
-                                            pattern="[0-9]{0,2}"
-                                            placeholder="MM"
-                                            formControlName="startMinute"
-                                            data-time-type="minute"
-                                            (blur)="formatTimeInputOnBlur($event)"
-                                            (focus)="openTimePicker(employeeIndex, dayIndex, 'startMinute')"
-                                        />
-
-                                        <span>-</span>
-
-                                        <input
-                                            type="text"
-                                            inputmode="numeric"
-                                            maxlength="2"
-                                            pattern="[0-9]{0,2}"
-                                            placeholder="HH"
-                                            formControlName="endHour"
-                                            data-time-type="hour"
-                                            (blur)="formatTimeInputOnBlur($event)"
-                                            (focus)="openTimePicker(employeeIndex, dayIndex, 'endHour')"
-                                        />
-
-                                        <span>:</span>
-
-                                        <input
-                                            type="text"
-                                            inputmode="numeric"
-                                            maxlength="2"
-                                            pattern="[0-9]{0,2}"
-                                            placeholder="MM"
-                                            formControlName="endMinute"
-                                            data-time-type="minute"
-                                            (blur)="formatTimeInputOnBlur($event)"
-                                            (focus)="openTimePicker(employeeIndex, dayIndex, 'endMinute')"
-                                        />
-                                    </div>
-                                } @else {
-                                    <span class="shift-text">
-                                        {{ formatShiftText(employeeIndex, dayIndex) }}
-                                    </span>
-                                }
-                            </div>
-                        }
-                    </ng-container>
-
-                    <!-- Accordion row for this employee (spans all columns) -->
-                    @if (activeTimeInput && activeTimeInput.employeeIndex === employeeIndex) {
-                        <div class="time-picker-accordion" (click)="$event.stopPropagation()">
-
-                            <!-- Values -->
-                            <div class="time-picker-values">
-                                @if (
-                                    activeTimeInput.fieldType === 'startHour' ||
-                                    activeTimeInput.fieldType === 'endHour'
-                                ) {
-                                    @for (h of hours; track h) {
-                                        <button
-                                            type="button"
-                                            class="time-option"
-                                            (click)="pickTimeValue(h)"
-                                        >
-                                            {{ h }}
-                                        </button>
-                                    }
-                                } @else {
-                                    @for (m of minutes; track m) {
-                                        <button
-                                            type="button"
-                                            class="time-option"
-                                            (click)="pickTimeValue(m)"
-                                        >
-                                            {{ m }}
-                                        </button>
-                                    }
-                                }
-
-                                <button type="button" class="close-picker" (click)="closeTimePicker()">
-                                    <i class="bi bi-x-lg "></i>
-                                </button>
-                            </div>
-                        </div>
+            <!-- Accordion row for this employee (spans all columns) -->
+            @if (activeTimeInput && activeTimeInput.employeeIndex === employeeIndex) {
+              <div class="time-picker-accordion" (click)="$event.stopPropagation()">
+                <!-- Values -->
+                <div class="time-picker-values">
+                  @if (
+                    activeTimeInput.fieldType === 'startHour' ||
+                    activeTimeInput.fieldType === 'endHour'
+                  ) {
+                    @for (h of hours; track h) {
+                      <button type="button" class="time-option" (click)="pickTimeValue(h)">
+                        <span>{{ h }}</span>
+                      </button>
                     }
-                </ng-container>
+                  } @else {
+                    @for (m of minutes; track m) {
+                      <button type="button" class="time-option" (click)="pickTimeValue(m)">
+                        {{ m }}
+                      </button>
+                    }
+                  }
+
+                  <button type="button" class="close-picker" (click)="closeTimePicker()">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </div>
+              </div>
             }
-        </ng-container>
+          </ng-container>
+        }
+      </ng-container>
     </div>
 
     <button class="save-button" type="submit" [class.hidden]="viewMode === 'read'">Save</button>
-</form>
+  </form>
 }

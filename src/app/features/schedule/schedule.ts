@@ -208,6 +208,8 @@ export class Schedule implements OnInit, OnDestroy {
   /**
    * Toggle between 'edit' and 'read' modes.
    * Only allowed when isWeekLocked is true.
+   * 
+   * USED BY THE TEMPLATE DON'T MODULARIZE.
    */
   toggleViewMode(): void {
     if (!this.isWeekLocked) {

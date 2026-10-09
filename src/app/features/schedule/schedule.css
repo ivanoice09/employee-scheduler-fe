@@ -1,10 +1,11 @@
 .controlBar {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
-  border: none;
+  border: 1px solid #d7d7d7;
   padding: 8px;
-  gap: 16px;
+  /* gap: 16px; */
+  margin-bottom: 20px;
 }
 
 .year-section,
@@ -15,10 +16,53 @@
   gap: 4px;
 }
 
-.view-toggle span.active {
-  background: #2563eb; /* active background */
-  color: #fff; /* active text color */
+/* ================== */
+/* FANCY VIEW-TOGGLER */
+/* ================== */
+
+.fill-button {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d7d7d7;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+
+  transition: color 0.3s ease;
 }
+
+.fill-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  background: #d7d7d7;
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+}
+
+.fill-button:hover:not(:disabled),
+.fill-button:focus-visible:not(:disabled) {
+  color: white;
+}
+
+.fill-button:hover:not(:disabled)::before,
+.fill-button:focus-visible:not(:disabled)::before {
+  transform: translateX(0);
+}
+
+.fill-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* ========================= */
+/* GRID, CELL, HEADER STYLES */
+/* ========================= */
 
 .schedule-grid {
   display: grid;
@@ -31,7 +75,7 @@
 .header-cell,
 .employee-cell,
 .shift-cell {
-  min-height: 64px;
+  min-height: 42px;
   border-right: 1px solid #d7d7d7;
   border-bottom: 1px solid #d7d7d7;
 }
@@ -64,24 +108,26 @@
   background: #fff;
 }
 
-.shift-cell .shift-editor input {
-  border: none;
-}
-
-.shift-cell .shift-editor input:focus {
-  border-color: #2563eb;
-}
-
-.empty-shift {
-  color: #9ca3af;
-}
-
 .save-button {
   margin-top: 16px;
 }
 
 .hidden {
   display: none;
+}
+
+/* ================== */
+/* SHIFT-CELL STYLING */
+/* ================== */
+
+.shift-cell {
+  padding: 0 0.4rem;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.shift-cell:focus-within {
+  background-color: #d7d7d7;
 }
 
 .shift-editor {
@@ -92,28 +138,32 @@
   width: 100%;
 }
 
-.shift-editor input {
+.shift-cell .shift-editor input {
+  border: none;
   width: 38px;
   text-align: center;
   font-size: 1rem;
   padding: 5px 0;
   min-width: 0;
+  outline: none;
+  background: none;
 }
 
-/* ACCORDION STYLES */
+/* ====================== */
+/*    ACCORDION STYLES    */
+/* ====================== */
+
 .time-picker-accordion {
   grid-column: 1 / -1; /* span all 8 columns */
   padding: 10px;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
+  background: #d7d7d7;
 }
 
 .close-picker {
   background: none;
   border: 1px solid #ff2121;
-  border-radius: 4px;
   font-size: 18px;
+  padding: 0.6rem;
   cursor: pointer;
   color: #ff2121;
   transition: color 0.3s ease;
@@ -131,9 +181,8 @@
 }
 
 .time-option {
-  padding: 0 10px;
+  padding: 0.6rem;
   border: 1px solid #d1d5db;
-  border-radius: 4px;
   background: #fff;
   cursor: pointer;
   font-size: 24px;
@@ -143,15 +192,50 @@
   background: #f3f4f6;
 }
 
+/* =================== */
+/* COOKIE EXPIRY TIMER */
+/* =================== */
+
 .demo-session-timer {
-  display: inline-block;
-  margin-bottom: 1rem;
+  border: 1px solid #d7d7d7;
   padding: 0.5rem 0.75rem;
-  border-radius: 0.4rem;
-  background: #fff3cd;
-  color: #664d03;
-  font-weight: 600;
+
+  /* Fill animation */
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  background: transparent;
+  transition: color 0.4s ease;
 }
+
+.demo-session-timer::before {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  content: 'EXPIRY';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  color: white;
+
+  background: #d7d7d7;
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+}
+
+.demo-session-timer:hover,
+.demo-session-timer:focus-visible {
+  color: transparent;
+}
+
+.demo-session-timer:hover::before,
+.demo-session-timer:focus-visible::before {
+  transform: translateY(0);
+}
+
+/* ============== */
+/* RESPONSIVENESS */
+/* ============== */
 
 @media (max-width: 1450px) {
   .schedule-grid {
@@ -161,7 +245,7 @@
   .shift-editor input {
     min-width: 0;
     text-align: center;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     width: 30px;
   }
 
