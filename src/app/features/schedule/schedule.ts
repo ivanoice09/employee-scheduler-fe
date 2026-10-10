@@ -84,12 +84,6 @@ export class Schedule implements OnInit, OnDestroy {
 
     this.demoSessionHelper.remainingSeconds$
       .pipe(
-        // startWith(null),
-        // pairwise(),
-        // filter(
-        //   ([previous, current]) =>
-        //     previous !== 0 && current === 0,
-        // ),
         filter((seconds): seconds is number => seconds === 0),
         takeUntil(this.destroy$),
       )
@@ -192,6 +186,9 @@ export class Schedule implements OnInit, OnDestroy {
     return this.form.get('assignments') as FormArray;
   }
 
+  /**
+   * TEMPLATE FUNCTION
+   */
   getShifts(employeeIndex: number): FormArray {
     return this.assignmentsFormArray.at(employeeIndex).get('shifts') as FormArray;
   }
@@ -243,6 +240,9 @@ export class Schedule implements OnInit, OnDestroy {
     return { startsAt, endsAt };
   }
 
+  /**
+   * TEMPLATE FUNCTIONS
+   */
   formatShiftText(employeeIndex: number, dayIndex: number): string {
     const shift = this.getShiftForCell(employeeIndex, dayIndex);
     if (!shift) {
@@ -256,6 +256,8 @@ export class Schedule implements OnInit, OnDestroy {
    * Typing 9 → blur → 09
    * Typing 25 in hour → input clamps it to 23
    * Typing 99 in hour → also clamped to 23
+   * 
+   * TEMPLATE FUNCTIONS
    */
   formatTimeInputOnBlur(event: Event): void {
     const input = event.target as HTMLInputElement;
