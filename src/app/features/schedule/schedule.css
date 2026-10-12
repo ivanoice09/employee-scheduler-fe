@@ -67,7 +67,7 @@
 .schedule-grid {
   display: grid;
   grid-template-columns: minmax(150px, 220px) repeat(7, minmax(110px, 1fr));
-  row-gap: 20px;
+  row-gap: 10px;
   overflow-x: auto;
 }
 
