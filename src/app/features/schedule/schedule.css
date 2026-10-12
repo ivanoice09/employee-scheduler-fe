@@ -20,7 +20,7 @@
 /* FANCY VIEW-TOGGLER */
 /* ================== */
 
-.fill-button {
+.toggle-view-btn {
   position: relative;
   z-index: 0;
   overflow: hidden;
@@ -34,7 +34,7 @@
   transition: color 0.3s ease;
 }
 
-.fill-button::before {
+.toggle-view-btn::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -45,17 +45,17 @@
   transition: transform 0.4s ease;
 }
 
-.fill-button:hover:not(:disabled),
-.fill-button:focus-visible:not(:disabled) {
+.toggle-view-btn:hover:not(:disabled),
+.toggle-view-btn:focus-visible:not(:disabled) {
   color: white;
 }
 
-.fill-button:hover:not(:disabled)::before,
-.fill-button:focus-visible:not(:disabled)::before {
+.toggle-view-btn:hover:not(:disabled)::before,
+.toggle-view-btn:focus-visible:not(:disabled)::before {
   transform: translateX(0);
 }
 
-.fill-button:disabled {
+.toggle-view-btn:disabled {
   cursor: default;
   opacity: 0.55;
 }
@@ -112,7 +112,7 @@
   margin-top: 16px;
 }
 
-.hidden {
+.hide {
   display: none;
 }
 
@@ -196,11 +196,17 @@
 /* COOKIE EXPIRY TIMER */
 /* =================== */
 
-.demo-session-timer {
+.expiry-grp {
+  display: flex;
+}
+
+.hide-expiry-btn {
   border: 1px solid #d7d7d7;
   padding: 0.5rem 0.75rem;
+  background: none;
+  cursor: pointer;
 
-  /* Fill animation */
+  /* Fill animtion */
   position: relative;
   z-index: 0;
   overflow: hidden;
@@ -208,7 +214,7 @@
   transition: color 0.4s ease;
 }
 
-.demo-session-timer::before {
+.hide-expiry-btn::before {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -223,14 +229,20 @@
   transition: transform 0.4s ease;
 }
 
-.demo-session-timer:hover,
-.demo-session-timer:focus-visible {
+.hide-expiry-btn:hover,
+.hide-expiry-btn:focus-visible {
   color: transparent;
 }
 
-.demo-session-timer:hover::before,
-.demo-session-timer:focus-visible::before {
+.hide-expiry-btn:hover::before,
+.hide-expiry-btn:focus-visible::before {
   transform: translateY(0);
+}
+
+.demo-session-timer {
+  border: 1px solid #d7d7d7;
+  border-left: none;
+  padding: 0.5rem 0.75rem;
 }
 
 /* ============== */

@@ -1,6 +1,6 @@
-import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe, NgClass } from '@angular/common';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, filter, Subject, switchMap, takeUntil } from 'rxjs';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
@@ -47,10 +47,10 @@ export class Schedule implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private alertUtil = inject(AlertUtil);
 
-  form = this.formBuilder.group({
+  weekScheduleForm = this.formBuilder.group({
     year: [0],
     weekNumber: [0],
-    assignments: this.formBuilder.array<FormGroup>([]),
+    shiftAssignments: this.formBuilder.array<FormGroup>([]),
   });
 
   currentWeekStartDate = '';
@@ -98,12 +98,12 @@ export class Schedule implements OnInit, OnDestroy {
     this.weekSubject.next(week);
     this.currentWeekStartDate = week.startDate;
 
-    this.form.patchValue({
+    this.weekScheduleForm.patchValue({
       year: week.year,
       weekNumber: week.weekNumber,
     });
 
-    const assignments = this.assignmentsFormArray;
+    const assignments = this.shiftAssignmentsFormArray;
     assignments.clear();
 
     const assignmentByEmployeeId = new Map(week.assignments.map((a) => [a.employeeId, a]));
@@ -141,6 +141,14 @@ export class Schedule implements OnInit, OnDestroy {
     }
   }
 
+  private splitTime(time: string | null): { hour: string; minute: string } {
+    if (!time) {
+      return { hour: '', minute: '00' };
+    }
+    const [hour, minute] = time.split(':');
+    return { hour: hour ?? '', minute: minute ?? '00' };
+  }
+
   private reloadCurrentWeek(): void {
     const week = this.weekSubject.getValue();
 
@@ -165,12 +173,12 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   private clearScheduleForm(): void {
-    this.form.reset({
+    this.weekScheduleForm.reset({
       year: 0,
       weekNumber: 0,
     });
 
-    this.assignmentsFormArray.clear();
+    this.shiftAssignmentsFormArray.clear();
     this.weekSubject.next(null);
     this.currentWeekStartDate = '';
   }
@@ -180,28 +188,24 @@ export class Schedule implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  get assignmentsFormArray(): FormArray {
-    return this.form.get('assignments') as FormArray;
-  }
-
-  get assignments(): FormArray {
-    return this.form.controls.assignments;
+  /**
+   * Returns the shift-assignments from the week schedule's form (FormArray)
+   */
+  get shiftAssignmentsFormArray(): FormArray {
+    return this.weekScheduleForm.get('shiftAssignments') as FormArray;
   }
 
   /**
    * TEMPLATE FUNCTION
    */
   getShifts(employeeIndex: number): FormArray {
-    return this.assignmentsFormArray.at(employeeIndex).get('shifts') as FormArray;
-  }
-
-  shiftsOf(assignment: AbstractControl): FormArray {
-    return assignment.get('shifts') as FormArray;
+    return this.shiftAssignmentsFormArray.at(employeeIndex).get('shifts') as FormArray;
   }
 
   /**
-   * True when week.status is not null (DRAFT, PUBLISHED, or LOCKED).
-   * This controls whether the toggle is enabled.
+   * Returns TRUE when week.status is not null.
+   * So if the status is DRAFT, PUBLISHED, or LOCKED return TRUE.
+   * If TRUE then the view toggler button is ENABLED.
    */
   get isWeekLocked(): boolean {
     const week = this.weekSubject.getValue();
@@ -210,9 +214,7 @@ export class Schedule implements OnInit, OnDestroy {
 
   /**
    * Toggle between 'edit' and 'read' modes.
-   * Only allowed when isWeekLocked is true.
-   * 
-   * USED BY THE TEMPLATE DON'T MODULARIZE.
+   * Only allowed when get isWeekLocked() is TRUE.
    */
   toggleViewMode(): void {
     if (!this.isWeekLocked) {
@@ -222,7 +224,9 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * HELPER
+   * After getting startHour, startMinute, endHour and endMinute
+   * converts them into string and joints them into (startHour, startMinute) as one
+   * and (endHour, endMinute) as one and returns TWO string values (startsAt, endsAt)
    */
   getShiftForCell(
     employeeIndex: number,
@@ -233,6 +237,7 @@ export class Schedule implements OnInit, OnDestroy {
 
     const startHour = shiftGroup.get('startHour')?.value as string;
     const startMinute = shiftGroup.get('startMinute')?.value as string;
+
     const endHour = shiftGroup.get('endHour')?.value as string;
     const endMinute = shiftGroup.get('endMinute')?.value as string;
 
@@ -247,7 +252,8 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * TEMPLATE FUNCTION
+   * Calls getShiftForCell() and unifies startsAt and endsAt then returns them
+   * into one single string. And finally displays the string into the template.
    */
   formatShiftIntoText(employeeIndex: number, dayIndex: number): string {
     const shift = this.getShiftForCell(employeeIndex, dayIndex);
@@ -258,12 +264,11 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * Typing 0 → blur → 00
-   * Typing 9 → blur → 09
-   * Typing 25 in hour → input clamps it to 23
-   * Typing 99 in hour → also clamped to 23
-   * 
-   * TEMPLATE FUNCTION
+   * Edge case where users might type unwanted inputs.
+   * This function blurs or clamps them into more secure inputs:
+   * Typing 0 only → blur → 00
+   * Typing 9 only → blur → 09
+   * Typing 25-99 in hour input → input clamps it to 23
    */
   formatTimeInputOnBlur(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -294,19 +299,34 @@ export class Schedule implements OnInit, OnDestroy {
         input.value = '00';
         return;
       }
+
       input.value = num.toString().padStart(2, '0');
     }
   }
 
-  // TEMPLATE
+  /**
+   * Returns a new Date calculated by adding or subtracting the specified
+   * number of days from the given start date.
+   *
+   * The start date must use the ISO-like `YYYY-MM-DD` format, e.g. `"2026-10-12"`.
+   * The month is converted from its 1-based representation (`1`–`12`) to
+   * JavaScript's 0-based month index (`0`–`11`).
+   *
+   * @param startDate - The base date in `YYYY-MM-DD` format.
+   * @param offset - The number of days to add. Use a negative value to subtract days.
+   * @returns A new `Date` representing the start date shifted by `offset` days.
+   *
+   * @example
+   * // Returns a Date representing 2026-10-15
+   * getDateForDay("2026-10-12", 3);
+   *
+   * @example
+   * // Returns a Date representing 2026-10-11
+   * getDateForDay("2026-10-12", -1);
+   */
   getDateForDay(startDate: string, offset: number): Date {
     const [year, month, day] = startDate.split('-').map(Number);
-
-    const date = new Date(year, month - 1, day);
-
-    date.setDate(date.getDate() + offset);
-
-    return date;
+    return new Date(Date.UTC(year, month - 1, day + offset));
   }
 
   // HELPER
@@ -318,29 +338,16 @@ export class Schedule implements OnInit, OnDestroy {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  private splitTime(time: string | null): { hour: string; minute: string } {
-    if (!time) {
-      return { hour: '', minute: '00' };
-    }
-
-    const [hour, minute] = time.split(':');
-
-    return {
-      hour: hour ?? '',
-      minute: minute ?? '00',
-    };
-  }
-
   save(): void {
     this.blurAllTimeInputs();
 
-    const raw = this.form.getRawValue();
+    const raw = this.weekScheduleForm.getRawValue();
 
     const payload: SaveWeekDTO = {
       year: raw.year ?? 0,
       weekNumber: raw.weekNumber ?? 0,
       weekStartDate: this.currentWeekStartDate,
-      assignments: (raw.assignments ?? []).map((assignment: any) => {
+      assignments: (raw.shiftAssignments ?? []).map((assignment: any) => {
         const shifts = (assignment.shifts ?? [])
           .map((shift: any) => {
             const startsAt = this.toTime(shift.startHour, shift.startMinute);
@@ -365,18 +372,24 @@ export class Schedule implements OnInit, OnDestroy {
       }),
     };
 
-    // console.log('Sending payload:', payload);
-
     this.scheduleService.saveWeek(payload).subscribe({
       next: () => {
-        console.log('Saved');
         this.alertUtil.show('Save successful', 'success');
       },
       error: (err) => console.error(err),
     });
   }
 
-  // HELPER
+  /**
+   * Even though edge case function formatTimeInputOnBlur() already exists,
+   * this function still validates the input hour and minute from the FORM
+   * before being SAVED.
+   *
+   * @param hour
+   * @param minute
+   * @returns a stringyfied pair of `hour`:`minute` with padding so for example
+   * instead of "7" it becomes "07"
+   */
   private toTime(hour: string, minute: string): string | null {
     if (!hour || !minute) {
       return null;
@@ -392,7 +405,6 @@ export class Schedule implements OnInit, OnDestroy {
     if (hourNumber < 0 || hourNumber > 23) {
       return null;
     }
-
     if (minuteNumber < 0 || minuteNumber > 59) {
       return null;
     }
@@ -410,17 +422,15 @@ export class Schedule implements OnInit, OnDestroy {
     inputs.forEach((input) => input.blur());
   }
 
-  // ================
-  // ACCORDION SET UP
-  // ================
+  // ===========================
+  // ACCORDION UTILITY FUNCTIONS
+  // ===========================
 
   /**
-   * Which input is currently active:
-   * - employeeIndex
-   * - dayIndex
-   * - fieldType: 'startHour' | 'startMinute' | 'endHour' | 'endMinute'
-   * 
-   * USED BY THE TEMPLATE DON'T MODULARIZE.
+   * Accordion status flag. When a time input box is clicked
+   * and focused on, this property will be filled with sub properties
+   * like the index of the selected employee, day, and a fieldType(startHour,
+   * startMinute, endHour, endMinute).
    */
   activeTimeInput: {
     employeeIndex: number;
@@ -429,7 +439,7 @@ export class Schedule implements OnInit, OnDestroy {
   } | null = null;
 
   /**
-   * TEMPLATE: Called on focus of hour/minute inputs.
+   * Fills accordion status with required subproperties.
    */
   openTimePicker(
     employeeIndex: number,
@@ -440,7 +450,8 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * TEMPLATE: Called when user picks a value from the accordion.
+   * If the flag activeTimeInput NOT null, let the user pick a time value.
+   * @param value
    */
   pickTimeValue(value: string): void {
     if (!this.activeTimeInput) {
@@ -459,10 +470,17 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * TEMPLATE: close accordion when clicking outside or pressing Escape (optional but nice).
+   * Close accordion when clicking outside
    */
   closeTimePicker(): void {
     this.activeTimeInput = null;
+  }
+
+  // CONTROL BAR FUNCTIONS
+  showOrHide: 'hide' | 'show' = 'show';
+
+  toggleExpiryTimer() {
+    this.showOrHide = this.showOrHide === 'show' ? 'hide' : 'show';
   }
 }
 
