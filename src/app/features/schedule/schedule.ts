@@ -1,6 +1,6 @@
 import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, filter, Subject, switchMap, takeUntil } from 'rxjs';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
@@ -25,8 +25,6 @@ import { AlertUtil } from '../../shared/services/utils/alert-util';
   styleUrl: './schedule.css',
 })
 export class Schedule implements OnInit, OnDestroy {
-  // weekSchedule$!: Observable<WeekDTO>;
-
   private weekSubject = new BehaviorSubject<WeekDTO | null>(null);
 
   week$ = this.weekSubject.asObservable();
@@ -186,11 +184,19 @@ export class Schedule implements OnInit, OnDestroy {
     return this.form.get('assignments') as FormArray;
   }
 
+  get assignments(): FormArray {
+    return this.form.controls.assignments;
+  }
+
   /**
    * TEMPLATE FUNCTION
    */
   getShifts(employeeIndex: number): FormArray {
     return this.assignmentsFormArray.at(employeeIndex).get('shifts') as FormArray;
+  }
+
+  shiftsOf(assignment: AbstractControl): FormArray {
+    return assignment.get('shifts') as FormArray;
   }
 
   /**
@@ -216,7 +222,7 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * Helpers for displaying shift text in read mode.
+   * HELPER
    */
   getShiftForCell(
     employeeIndex: number,
@@ -241,9 +247,9 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * TEMPLATE FUNCTIONS
+   * TEMPLATE FUNCTION
    */
-  formatShiftText(employeeIndex: number, dayIndex: number): string {
+  formatShiftIntoText(employeeIndex: number, dayIndex: number): string {
     const shift = this.getShiftForCell(employeeIndex, dayIndex);
     if (!shift) {
       return 'OFF';
@@ -257,7 +263,7 @@ export class Schedule implements OnInit, OnDestroy {
    * Typing 25 in hour → input clamps it to 23
    * Typing 99 in hour → also clamped to 23
    * 
-   * TEMPLATE FUNCTIONS
+   * TEMPLATE FUNCTION
    */
   formatTimeInputOnBlur(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -292,6 +298,7 @@ export class Schedule implements OnInit, OnDestroy {
     }
   }
 
+  // TEMPLATE
   getDateForDay(startDate: string, offset: number): Date {
     const [year, month, day] = startDate.split('-').map(Number);
 
@@ -302,6 +309,7 @@ export class Schedule implements OnInit, OnDestroy {
     return date;
   }
 
+  // HELPER
   formatDateForApi(startDate: string, offset: number): string {
     const date = this.getDateForDay(startDate, offset);
     const dd = String(date.getDate()).padStart(2, '0');
@@ -368,6 +376,7 @@ export class Schedule implements OnInit, OnDestroy {
     });
   }
 
+  // HELPER
   private toTime(hour: string, minute: string): string | null {
     if (!hour || !minute) {
       return null;
@@ -392,7 +401,7 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * EDGE CASE FUNCTION
+   * EDGE CASE FUNCTION, HELPER
    * The user might not "unfocus" one of the input box before saving,
    * so this function removes the focus and then clamp it to 00.
    */
@@ -420,9 +429,7 @@ export class Schedule implements OnInit, OnDestroy {
   } | null = null;
 
   /**
-   * Called on focus of hour/minute inputs.
-   * 
-   * USED BY THE TEMPLATE DON'T MODULARIZE.
+   * TEMPLATE: Called on focus of hour/minute inputs.
    */
   openTimePicker(
     employeeIndex: number,
@@ -433,9 +440,7 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * Called when user picks a value from the accordion.
-   * 
-   * USED BY THE TEMPLATE DON'T MODULARIZE.
+   * TEMPLATE: Called when user picks a value from the accordion.
    */
   pickTimeValue(value: string): void {
     if (!this.activeTimeInput) {
@@ -454,9 +459,7 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * Close accordion when clicking outside or pressing Escape (optional but nice).
-   * 
-   * USED BY THE TEMPLATE DON'T MODULARIZE.
+   * TEMPLATE: close accordion when clicking outside or pressing Escape (optional but nice).
    */
   closeTimePicker(): void {
     this.activeTimeInput = null;

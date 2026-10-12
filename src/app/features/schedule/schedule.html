@@ -57,6 +57,7 @@
           track $index;
           let employeeIndex = $index
         ) {
+          
           <ng-container [formGroupName]="employeeIndex">
             <div class="employee-cell">
               <span>{{ assignment.get('employeeName')?.value }}</span>
@@ -64,9 +65,9 @@
 
             <ng-container formArrayName="shifts">
               @for (
-                shift of getShifts(employeeIndex).controls;
-                track $index;
-                let dayIndex = $index
+                shift of shiftsOf(assignment).controls;
+                track shift;
+                let dayIndex = $index;
               ) {
                 <div class="shift-cell">
                   @if (viewMode === 'edit') {
@@ -127,7 +128,7 @@
                     </div>
                   } @else {
                     <span class="shift-text">
-                      {{ formatShiftText(employeeIndex, dayIndex) }}
+                      {{ formatShiftIntoText(employeeIndex, dayIndex) }}
                     </span>
                   }
                 </div>
