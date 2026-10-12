@@ -1,5 +1,5 @@
-import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe, NgClass } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, filter, Subject, switchMap, takeUntil } from 'rxjs';
