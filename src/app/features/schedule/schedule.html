@@ -1,144 +1,138 @@
 @if (week$ | async; as week) {
-<div class="controlBar">
-  <div class="year-section">
-    <span>YEAR:</span>
-    <span> {{ week.year }}</span>
-  </div>
-  <div class="week-section">
-    <span>WEEK:</span>
-    <span> {{ week.weekNumber }}</span>
-  </div>
-  <div class="start-section">
-    <span>START:</span>
-    <span> {{ week.startDate | date: 'MMM dd' | uppercase }}</span>
-  </div>
-  <div class="status-section">
-    <span>STATUS:</span>
-    <span> {{ week.status ?? 'undefined' }} </span>
-  </div>
+  <div class="controlBar">
+    <div class="year-section">
+      <span>YEAR:</span>
+      <span> {{ week.year }}</span>
+    </div>
+    <div class="week-section">
+      <span>WEEK:</span>
+      <span> {{ week.weekNumber }}</span>
+    </div>
+    <div class="start-section">
+      <span>START:</span>
+      <span> {{ week.startDate | date: 'MMM dd' | uppercase }}</span>
+    </div>
+    <div class="status-section">
+      <span>STATUS:</span>
+      <span> {{ week.status ?? 'undefined' }} </span>
+    </div>
 
-  <button type="button" class="toggle-view-btn" [disabled]="!isWeekLocked" (click)="toggleViewMode()">
-    {{ viewMode === 'edit' ? 'VIEW' : 'EDIT' }}
-  </button>
-
-  @if (remainingSeconds$ | async; as remainingSeconds) {
-  <div class="expiry-grp">
-
-    <button type="button" class="hide-expiry-btn" (click)="toggleExpiryTimer()">
-      {{ showOrHide === 'hide' ? 'SHOW' : 'HIDE '}}
+    <button
+      type="button"
+      class="toggle-view-btn"
+      [disabled]="!isWeekLocked"
+      (click)="toggleViewMode()"
+    >
+      {{ viewMode === 'edit' ? 'VIEW' : 'EDIT' }}
     </button>
 
-    <div class="demo-session-timer" [class.hide]="showOrHide === 'hide'">
-      <span style="cursor: default">{{ remainingSeconds | demoSessionTimer }}</span>
-    </div>
+    @if (remainingSeconds$ | async; as remainingSeconds) {
+      <div class="expiry-grp">
+        <button type="button" class="hide-expiry-btn" (click)="toggleExpiryTimer()">
+          {{ showOrHide === 'hide' ? 'SHOW' : 'HIDE ' }}
+        </button>
 
-  </div>
-  }
-
-</div>
-
-<form [formGroup]="weekScheduleForm" (ngSubmit)="save()">
-  <div class="schedule-grid">
-    <!-- Header row -->
-    <div class="header-cell employee-header">
-      <span>EMPLOYEES</span>
-    </div>
-
-    @for (dayName of dayNames; track $index) {
-    <div class="header-cell specific-date">
-      <span>{{ dayName | slice: 0 : 3 | uppercase }}</span>
-      <span>
-        {{ getDateForDay(week.startDate, $index) | date: 'dd' }}
-      </span>
-    </div>
+        <div class="demo-session-timer" [class.hide]="showOrHide === 'hide'">
+          <span style="cursor: default">{{ remainingSeconds | demoSessionTimer }}</span>
+        </div>
+      </div>
     }
+  </div>
 
-    <!-- Employee rows -->
-    <ng-container formArrayName="shiftAssignments">
-      @for (
-      assignment of shiftAssignmentsFormArray.controls;
-      track $index;
-      let employeeIndex = $index
-      ) {
+  <form [formGroup]="weekScheduleForm" (ngSubmit)="save()">
+    <div class="schedule-grid">
+      <!-- Header row -->
+      <div class="header-cell employee-header">
+        <span>EMPLOYEES</span>
+      </div>
 
-      <ng-container [formGroupName]="employeeIndex">
-        <div class="employee-cell">
-          <span>{{ assignment.get('employeeName')?.value }}</span>
+      @for (dayName of dayNames; track $index) {
+        <div class="header-cell specific-date">
+          <span>{{ dayName | slice: 0 : 3 | uppercase }}</span>
+          <span>
+            {{ getDateForDay(week.startDate, $index) | date: 'dd' }}
+          </span>
         </div>
+      }
 
-        <ng-container formArrayName="shifts">
-          @for (
-          shift of getShifts(employeeIndex).controls;
-          track shift;
-          let dayIndex = $index;
-          ) {
-          <div class="shift-cell">
-            @if (viewMode === 'edit') {
-            <div [formGroupName]="dayIndex" class="shift-editor">
-              <input type="text" inputmode="numeric" maxlength="2" pattern="[0-9]{0,2}" placeholder="HH"
-                formControlName="startHour" data-time-type="hour" (blur)="formatTimeInputOnBlur($event)"
-                (focus)="openTimePicker(employeeIndex, dayIndex, 'startHour')" />
-
-              <span>:</span>
-
-              <input type="text" inputmode="numeric" maxlength="2" pattern="[0-9]{0,2}" placeholder="MM"
-                formControlName="startMinute" data-time-type="minute" (blur)="formatTimeInputOnBlur($event)"
-                (focus)="openTimePicker(employeeIndex, dayIndex, 'startMinute')" />
-
-              <span>-</span>
-
-              <input type="text" inputmode="numeric" maxlength="2" pattern="[0-9]{0,2}" placeholder="HH"
-                formControlName="endHour" data-time-type="hour" (blur)="formatTimeInputOnBlur($event)"
-                (focus)="openTimePicker(employeeIndex, dayIndex, 'endHour')" />
-
-              <span>:</span>
-
-              <input type="text" inputmode="numeric" maxlength="2" pattern="[0-9]{0,2}" placeholder="MM"
-                formControlName="endMinute" data-time-type="minute" (blur)="formatTimeInputOnBlur($event)"
-                (focus)="openTimePicker(employeeIndex, dayIndex, 'endMinute')" />
+      <!-- Employee rows -->
+      <ng-container formArrayName="shiftAssignments">
+        @for (
+          assignment of shiftAssignmentsFormArray.controls;
+          track $index;
+          let employeeIndex = $index
+        ) {
+          <ng-container [formGroupName]="employeeIndex">
+            <div class="employee-cell">
+              <span>{{ assignment.get('employeeName')?.value }}</span>
             </div>
-            } @else {
-            <span class="shift-text">
-              {{ formatShiftIntoText(employeeIndex, dayIndex) }}
-            </span>
-            }
-          </div>
-          }
-        </ng-container>
 
-        <!-- Accordion row for this employee (spans all columns) -->
-        @if (activeTimeInput && activeTimeInput.employeeIndex === employeeIndex) {
-        <div class="time-picker-accordion" (click)="$event.stopPropagation()">
-          <!-- Values -->
-          <div class="time-picker-values">
-            @if (
-            activeTimeInput.fieldType === 'startHour' ||
-            activeTimeInput.fieldType === 'endHour'
-            ) {
-            @for (h of hours; track h) {
-            <button type="button" class="time-option" (click)="pickTimeValue(h)">
-              <span>{{ h }}</span>
-            </button>
-            }
-            } @else {
-            @for (m of minutes; track m) {
-            <button type="button" class="time-option" (click)="pickTimeValue(m)">
-              {{ m }}
-            </button>
-            }
-            }
+            <ng-container formArrayName="shifts">
+              @for (shift of shiftsOf(assignment).controls; track shift; let dayIndex = $index) {
+                <div class="shift-cell">
+                  @if (viewMode === 'edit') {
+                    <div [formGroupName]="dayIndex" class="shift-editor">
+                      @for (field of timeFields; track field.key; let i = $index) {
+                        <div
+                          class="time-select"
+                          (click)="$event.stopPropagation()"
+                          (keydown.escape)="closeTimePicker()"
+                        >
+                          <input
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="2"
+                            pattern="[0-9]{0,2}"
+                            autocomplete="off"
+                            [placeholder]="field.placeholder"
+                            [formControlName]="field.key"
+                            [attr.data-time-type]="field.type"
+                            [attr.aria-label]="field.type"
+                            [attr.aria-expanded]="
+                              isTimePickerOpen(employeeIndex, dayIndex, field.key)
+                            "
+                            (focus)="openTimePicker(employeeIndex, dayIndex, field.key)"
+                            (click)="openTimePicker(employeeIndex, dayIndex, field.key)"
+                            (blur)="formatTimeInputOnBlur($event)"
+                            (keydown.tab)="closeTimePicker()"
+                          />
 
-            <button type="button" class="close-picker" (click)="closeTimePicker()">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-        </div>
+                          @if (isTimePickerOpen(employeeIndex, dayIndex, field.key)) {
+                            <div class="time-select-options">
+                              @for (value of field.type === 'hour' ? hours : minutes; track value) {
+                                <button
+                                  type="button"
+                                  class="time-select-option"
+                                  [class.selected]="shift.get(field.key)?.value === value"
+                                  [attr.aria-pressed]="shift.get(field.key)?.value === value"
+                                  (click)="pickTimeValue(value)"
+                                >
+                                {{ value }}
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+                        @if (i === 0 || i === 2) {
+                          <span>:</span>
+                        } @else if (i === 1) {
+                          <span>-</span>
+                        }
+                      }
+                    </div>
+                  } @else {
+                    <span class="shift-text">
+                      {{ formatShiftIntoText(employeeIndex, dayIndex) }}
+                    </span>
+                  }
+                </div>
+              }
+            </ng-container>
+          </ng-container>
         }
       </ng-container>
-      }
-    </ng-container>
-  </div>
+    </div>
 
-  <button class="save-button" type="submit" [class.hide]="viewMode === 'read'">Save</button>
-</form>
+    <button class="save-button" type="submit" [class.hide]="viewMode === 'read'">Save</button>
+  </form>
 }

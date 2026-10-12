@@ -1,6 +1,12 @@
 import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  AbstractControl,
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, filter, Subject, switchMap, takeUntil } from 'rxjs';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
@@ -23,6 +29,10 @@ import { AlertUtil } from '../../shared/services/utils/alert-util';
   ],
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
+  host: {
+    '(document:click)': 'closeTimePicker()',
+    '(document:keydown.escape)': 'closeTimePicker()'
+  },
 })
 export class Schedule implements OnInit, OnDestroy {
   private weekSubject = new BehaviorSubject<WeekDTO | null>(null);
@@ -196,10 +206,19 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * TEMPLATE FUNCTION
+   * Get all shifts from the FormArry by passing an employee's index number.
    */
-  getShifts(employeeIndex: number): FormArray {
+  getShiftsByEmployeeIndex(employeeIndex: number): FormArray {
     return this.shiftAssignmentsFormArray.at(employeeIndex).get('shifts') as FormArray;
+  }
+
+  /**
+   * Get all shifts directly from the FormArray.
+   * This is an optimization of the function above because it avoids
+   * resolving the employee again by index.
+   */
+  shiftsOf(shiftAssignment: AbstractControl): FormArray {
+    return shiftAssignment.get('shifts') as FormArray;
   }
 
   /**
@@ -232,7 +251,7 @@ export class Schedule implements OnInit, OnDestroy {
     employeeIndex: number,
     dayIndex: number,
   ): { startsAt: string | null; endsAt: string | null } | null {
-    const shifts = this.getShifts(employeeIndex);
+    const shifts = this.getShiftsByEmployeeIndex(employeeIndex);
     const shiftGroup = shifts.at(dayIndex) as FormGroup;
 
     const startHour = shiftGroup.get('startHour')?.value as string;
@@ -422,12 +441,12 @@ export class Schedule implements OnInit, OnDestroy {
     inputs.forEach((input) => input.blur());
   }
 
-  // ===========================
-  // ACCORDION UTILITY FUNCTIONS
-  // ===========================
+  // ==================================
+  // SELECT COMPONENT UTILITY FUNCTIONS
+  // ==================================
 
   /**
-   * Accordion status flag. When a time input box is clicked
+   * This is a status flag. When a time input box is clicked
    * and focused on, this property will be filled with sub properties
    * like the index of the selected employee, day, and a fieldType(startHour,
    * startMinute, endHour, endMinute).
@@ -438,9 +457,7 @@ export class Schedule implements OnInit, OnDestroy {
     fieldType: 'startHour' | 'startMinute' | 'endHour' | 'endMinute';
   } | null = null;
 
-  /**
-   * Fills accordion status with required subproperties.
-   */
+  // Fills accordion status with required subproperties.
   openTimePicker(
     employeeIndex: number,
     dayIndex: number,
@@ -449,10 +466,7 @@ export class Schedule implements OnInit, OnDestroy {
     this.activeTimeInput = { employeeIndex, dayIndex, fieldType };
   }
 
-  /**
-   * If the flag activeTimeInput NOT null, let the user pick a time value.
-   * @param value
-   */
+  // If the flag activeTimeInput NOT null, let the user pick a time value.
   pickTimeValue(value: string): void {
     if (!this.activeTimeInput) {
       return;
@@ -460,18 +474,15 @@ export class Schedule implements OnInit, OnDestroy {
 
     const { employeeIndex, dayIndex, fieldType } = this.activeTimeInput;
 
-    const shiftGroup = this.getShifts(employeeIndex).at(dayIndex) as FormGroup;
+    const shiftGroup = this.getShiftsByEmployeeIndex(employeeIndex).at(dayIndex) as FormGroup;
     const control = shiftGroup.get(fieldType);
 
     control?.setValue(value);
 
-    // Close accordion after picking
     this.activeTimeInput = null;
   }
 
-  /**
-   * Close accordion when clicking outside
-   */
+  // close SELECT component when clicking outside
   closeTimePicker(): void {
     this.activeTimeInput = null;
   }
@@ -481,6 +492,25 @@ export class Schedule implements OnInit, OnDestroy {
 
   toggleExpiryTimer() {
     this.showOrHide = this.showOrHide === 'show' ? 'hide' : 'show';
+  }
+
+  readonly timeFields = [
+    { key: 'startHour', placeholder: 'HH', type: 'hour' },
+    { key: 'startMinute', placeholder: 'MM', type: 'minute' },
+    { key: 'endHour', placeholder: 'HH', type: 'hour' },
+    { key: 'endMinute', placeholder: 'MM', type: 'minute' },
+  ] as const;
+
+  isTimePickerOpen(
+    employeeIndex: number,
+    dayIndex: number,
+    fieldType: 'startHour' | 'startMinute' | 'endHour' | 'endMinute',
+  ): boolean {
+    return (
+      this.activeTimeInput?.employeeIndex === employeeIndex &&
+      this.activeTimeInput?.dayIndex === dayIndex &&
+      this.activeTimeInput?.fieldType === fieldType
+    );
   }
 }
 
