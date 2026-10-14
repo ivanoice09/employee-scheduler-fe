@@ -19,7 +19,7 @@
 
     <button
       type="button"
-      class="toggle-view-btn"
+      class="btn-slide toggle-view-btn"
       [disabled]="!isWeekLocked"
       (click)="toggleViewMode()"
     >
@@ -28,7 +28,7 @@
 
     @if (remainingSeconds$ | async; as remainingSeconds) {
       <div class="expiry-grp">
-        <button type="button" class="hide-expiry-btn" (click)="toggleExpiryTimer()">
+        <button type="button" class="btn-slide hide-expiry-btn" (click)="toggleExpiryTimer()">
           {{ showOrHide === 'hide' ? 'SHOW' : 'HIDE ' }}
         </button>
 
@@ -68,13 +68,14 @@
             </div>
 
             <ng-container formArrayName="shifts">
-              @for (shift of shiftsOf(assignment).controls; track shift; let dayIndex = $index) {
+              @for (shift of shiftsOf(assignment).controls; track $index; let dayIndex = $index) {
                 <div class="shift-cell">
                   @if (viewMode === 'edit') {
                     <div [formGroupName]="dayIndex" class="shift-editor">
                       @for (field of timeFields; track field.key; let i = $index) {
                         <div
                           class="time-select"
+                          [class.open-up]="shouldOpenUp(employeeIndex)"
                           (click)="$event.stopPropagation()"
                           (keydown.escape)="closeTimePicker()"
                         >
@@ -132,7 +133,5 @@
         }
       </ng-container>
     </div>
-
-    <button class="save-button" type="submit" [class.hide]="viewMode === 'read'">Save</button>
   </form>
 }

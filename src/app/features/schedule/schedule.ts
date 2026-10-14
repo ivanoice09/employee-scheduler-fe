@@ -1,5 +1,5 @@
 import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
-import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -31,7 +31,7 @@ import { AlertUtil } from '../../shared/services/utils/alert-util';
   styleUrl: './schedule.css',
   host: {
     '(document:click)': 'closeTimePicker()',
-    '(document:keydown.escape)': 'closeTimePicker()'
+    '(document:keydown.escape)': 'closeTimePicker()',
   },
 })
 export class Schedule implements OnInit, OnDestroy {
@@ -76,7 +76,6 @@ export class Schedule implements OnInit, OnDestroy {
   remainingSeconds$ = this.demoSessionHelper.remainingSeconds$;
 
   ngOnInit(): void {
-    // 2) Load schedule when route params change
     this.route.paramMap
       .pipe(
         switchMap((params) => {
@@ -149,7 +148,10 @@ export class Schedule implements OnInit, OnDestroy {
         }),
       );
     }
+
   }
+
+
 
   private splitTime(time: string | null): { hour: string; minute: string } {
     if (!time) {
@@ -487,13 +489,6 @@ export class Schedule implements OnInit, OnDestroy {
     this.activeTimeInput = null;
   }
 
-  // CONTROL BAR FUNCTIONS
-  showOrHide: 'hide' | 'show' = 'show';
-
-  toggleExpiryTimer() {
-    this.showOrHide = this.showOrHide === 'show' ? 'hide' : 'show';
-  }
-
   readonly timeFields = [
     { key: 'startHour', placeholder: 'HH', type: 'hour' },
     { key: 'startMinute', placeholder: 'MM', type: 'minute' },
@@ -510,6 +505,47 @@ export class Schedule implements OnInit, OnDestroy {
       this.activeTimeInput?.employeeIndex === employeeIndex &&
       this.activeTimeInput?.dayIndex === dayIndex &&
       this.activeTimeInput?.fieldType === fieldType
+    );
+  }
+
+  shouldOpenUp(employeeIndex: number): boolean {
+    const total = this.shiftAssignmentsFormArray.controls.length;
+    return total - employeeIndex <= 4;
+  }
+
+  // =====================
+  // CONTROL BAR FUNCTIONS
+  // =====================
+
+  showOrHide: 'hide' | 'show' = 'show';
+
+  toggleExpiryTimer() {
+    this.showOrHide = this.showOrHide === 'show' ? 'hide' : 'show';
+  }
+
+  // ====================================
+  // NAVBAR SAVE BUTTON UTILITY FUNCTI0NS
+  // ====================================
+
+  hasSavableShifts(): boolean {
+    return this.shiftAssignmentsFormArray.controls.some((assignment) =>
+      this.shiftsOf(assignment).controls.some((shift) => {
+        const group = shift as FormGroup;
+
+        const startsAt = this.toTime(
+          group.get('startHour')?.value,
+          group.get('startMinute')?.value,
+        );
+
+        const endsAt = this.toTime(group.get('endHour')?.value, group.get('endMinute')?.value);
+
+        if (!startsAt || !endsAt) {
+          return false;
+        }
+
+        // Reject zero-duration shifts such as 08:00 - 08:00
+        return startsAt !== endsAt;
+      }),
     );
   }
 }

@@ -1,1 +1,17 @@
-<p>navbar works!</p>
+<div class="nav-space">
+    <nav class="nav-container" [class.scrolled]="isScrolled">
+        <div class="left-side">
+            <a routerLink="/">
+                SCHEDULES
+            </a>
+        </div>
+        <div class="right-side">
+            <button 
+                type="button" 
+                class="save-button"
+            >
+            SAVE
+            </button>
+        </div>
+    </nav>
+</div>
