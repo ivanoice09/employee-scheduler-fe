@@ -1,26 +1,29 @@
 @if (week$ | async; as week) {
   <div class="controlBar">
-    <div class="year-section">
-      <span>YEAR:</span>
-      <span> {{ week.year }}</span>
-    </div>
-    <div class="week-section">
-      <span>WEEK:</span>
-      <span> {{ week.weekNumber }}</span>
-    </div>
-    <div class="start-section">
-      <span>START:</span>
-      <span> {{ week.startDate | date: 'MMM dd' | uppercase }}</span>
-    </div>
-    <div class="status-section">
-      <span>STATUS:</span>
-      <span> {{ week.status ?? 'undefined' }} </span>
+
+    <div class="schedule-details">
+      <div class="year-section">
+        <span>YEAR:</span>
+        <span> {{ week.year }}</span>
+      </div>
+      <div class="week-section">
+        <span>WEEK:</span>
+        <span> {{ week.weekNumber }}</span>
+      </div>
+      <div class="start-section">
+        <span>START:</span>
+        <span> {{ week.startDate | date: 'MMM dd' | uppercase }}</span>
+      </div>
+      <div class="status-section">
+        <span>STATUS:</span>
+        <span> {{ week.status ?? 'undefined' }} </span>
+      </div>
     </div>
 
     <div class="action-buttons">
-      <button 
-        type="button" 
-        class="btn-slide btn-save" 
+      <button
+        type="button"
+        class="btn-slide btn-save"
         (click)="save()"
         [class.hide]="viewMode === 'read'"
       >
@@ -47,10 +50,11 @@
         </div>
       }
     </div>
+
   </div>
 
   <form [formGroup]="weekScheduleForm" (ngSubmit)="save()">
-    <div class="schedule-grid">
+    <div class="schedule-grid" [class.schedule-grid--loading]="reloading">
       <!-- Header row -->
       <div class="header-cell employee-header">
         <span>EMPLOYEES</span>
@@ -102,7 +106,6 @@
                             [attr.aria-expanded]="
                               isTimePickerOpen(employeeIndex, dayIndex, field.key)
                             "
-                            (focus)="openTimePicker(employeeIndex, dayIndex, field.key)"
                             (click)="openTimePicker(employeeIndex, dayIndex, field.key)"
                             (blur)="formatTimeInputOnBlur($event)"
                             (keydown.tab)="closeTimePicker()"

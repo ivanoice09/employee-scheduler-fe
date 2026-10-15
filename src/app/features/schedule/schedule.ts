@@ -8,7 +8,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, filter, Subject, switchMap, takeUntil } from 'rxjs';
+import { BehaviorSubject, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
 import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
 import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
@@ -147,19 +147,23 @@ export class Schedule implements OnInit, OnDestroy {
     }
   }
 
+  reloading = false;
+
   private reloadCurrentWeek(): void {
     const week = this.weekSubject.getValue();
 
-    if (!week) {
+    if (!week || this.reloading) {
       return;
     }
 
-    // Immediately remove the old shift values from the UI.
-    this.clearScheduleForm();
+    this.reloading = true;
 
     this.scheduleService
       .getWeek(week.year, week.weekNumber)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => (this.reloading = false))
+      )
       .subscribe({
         next: (newWeek) => {
           this.loadWeekIntoForm(newWeek);
