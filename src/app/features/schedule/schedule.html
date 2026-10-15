@@ -8,7 +8,32 @@
       </div>
       <div class="week-section">
         <span>WEEK:</span>
-        <span> {{ week.weekNumber }}</span>
+        <form 
+          [formGroup]="weekNavigationForm"
+          (ngSubmit)="changeWeek()"
+          class="week-navigation"
+        >
+          <input 
+            type="number"
+            formControlName="weekNumber"
+            class="week-input"
+            min="1"
+            max="53"
+            step="1"
+            inputmode="numeric"
+            autocomplete="off"
+            aria-label="Week number"
+            (blur)="changeWeek()"
+            (keydown.enter)="$event.preventDefault(); changeWeek()"
+          />
+
+          @if (
+            weekNavigationForm.get('weekNumber')?.invalid &&
+            weekNavigationForm.get('weekNumber')?.touched
+          ) {
+            <span class="week-error">1-53</span>
+          }
+        </form>
       </div>
       <div class="start-section">
         <span>START:</span>
@@ -33,6 +58,7 @@
         }
         {{ saving ? '' : 'SAVE' }}
       </button>
+      
       <button
         type="button"
         class="btn-slide btn-toggle-view"

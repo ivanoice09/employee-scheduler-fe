@@ -6,8 +6,10 @@ import {
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
 } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, delay, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
 import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
@@ -56,6 +58,41 @@ export class Schedule implements OnInit, OnDestroy {
   private scheduleService = inject(ScheduleService);
   private route = inject(ActivatedRoute);
   private alertUtil = inject(AlertUtil);
+  private router = inject(Router);
+
+  weekNavigationForm = this.formBuilder.group({
+    weekNumber: [
+      0,
+      [
+        Validators.required,
+        Validators.min(1),
+        Validators.max(53),
+        integerValidator,
+      ],
+    ],
+  });
+
+  changeWeek(): void {
+    const weekControl = this.weekNavigationForm.get('weekNumber');
+
+    if (!weekControl || weekControl.invalid) {
+      weekControl?.markAsTouched();
+      return;
+    }
+
+    const week = this.weekSubject.getValue();
+    if (!week) {
+      return;
+    }
+
+    const newWeekNumber = Number(weekControl.value);
+
+    if (newWeekNumber === week.weekNumber) {
+      return;
+    }
+
+    this.router.navigate(['/schedule', week.year, newWeekNumber]);
+  }
 
   weekScheduleForm = this.formBuilder.group({
     year: [0],
@@ -103,6 +140,10 @@ export class Schedule implements OnInit, OnDestroy {
   private loadWeekIntoForm(week: WeekDTO): void {
     this.weekSubject.next(week);
     this.currentWeekStartDate = week.startDate;
+
+    this.weekNavigationForm.patchValue({
+      weekNumber: week.weekNumber,
+    })
 
     this.weekScheduleForm.patchValue({
       year: week.year,
@@ -532,6 +573,21 @@ export class Schedule implements OnInit, OnDestroy {
   toggleExpiryTimer() {
     this.showOrHide = this.showOrHide === 'show' ? 'hide' : 'show';
   }
+}
+
+/**
+ * A integer validator mainly used by the week number input
+ */
+function integerValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+
+  if (value == null || value === '') {
+    return null;
+  }
+
+  return Number.isInteger(Number(value))
+    ? null
+    : { notInteger: true }
 }
 
 @Component({

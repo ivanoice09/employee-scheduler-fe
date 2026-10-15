@@ -1,3 +1,40 @@
+/* ================= */
+/* WEEK NUMBER INPUT */
+/* ================= */
+
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.week-input {
+  width: 3.5rem;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  text-align: center;
+  transition: border-color 0.3s ease;
+}
+
+.week-input:hover {
+  border-color: #ccc;
+}
+
+.week-input.ng-invalid.ng-touched {
+  border-color: #d9534f;
+}
+
+.week-error {
+  color: #d9534f;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+/* =========================== */
+/* CONTROL BAR AND ITS CONTENT */
+/* =========================== */
+
 .controlBar {
   display: flex;
   justify-content: space-between;
@@ -12,6 +49,7 @@
 .start-section,
 .status-section {
   display: flex;
+  align-items: center;
   gap: 4px;
 }
 
