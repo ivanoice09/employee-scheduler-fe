@@ -25,9 +25,13 @@
         type="button"
         class="btn-slide btn-save"
         (click)="save()"
+        [disabled]="saving"
         [class.hide]="viewMode === 'read'"
       >
-        SAVE
+        @if (saving) {
+          <span class="btn-save-spinner" aria-hidden="true"></span>
+        }
+        {{ saving ? '' : 'SAVE' }}
       </button>
       <button
         type="button"

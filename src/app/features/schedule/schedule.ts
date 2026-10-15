@@ -8,7 +8,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
+import { BehaviorSubject, delay, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
 import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
 import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
@@ -357,6 +357,8 @@ export class Schedule implements OnInit, OnDestroy {
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  saving = false;
+
   save(): void {
     this.blurAllTimeInputs();
 
@@ -391,7 +393,16 @@ export class Schedule implements OnInit, OnDestroy {
       }),
     };
 
-    this.scheduleService.saveWeek(payload).subscribe({
+    this.saving = true;
+
+    this.scheduleService
+    .saveWeek(payload)
+    .pipe(
+      // delay(600), // just to show if spinner animation works
+      takeUntil(this.destroy$),
+      finalize(() => (this.saving = false)),
+    )
+    .subscribe({
       next: () => {
         this.alertUtil.show('Save successful', 'success');
         this.reloadCurrentWeek();

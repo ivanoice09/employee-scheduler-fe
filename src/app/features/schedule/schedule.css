@@ -26,11 +26,38 @@
   gap: 2rem;
 }
 
-.btn-save, 
+.btn-save,
 .btn-toggle-view,
 .btn-hide-expiry {
   padding: 0.5rem 0.75rem;
   border: 1px solid #d7d7d7;
+}
+
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 65px;
+}
+
+.btn-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-save-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ========================= */
