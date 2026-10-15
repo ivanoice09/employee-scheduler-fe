@@ -15,15 +15,17 @@
   gap: 4px;
 }
 
-/* ================== */
-/* FANCY VIEW-TOGGLER */
-/* ================== */
+.action-buttons {
+  display: flex;
+  gap: 2rem;
+}
 
-.toggle-view-btn {
+.btn-save, 
+.btn-toggle-view,
+.btn-hide-expiry {
   padding: 0.5rem 0.75rem;
   border: 1px solid #d7d7d7;
 }
-
 
 /* ========================= */
 /* GRID, CELL, HEADER STYLES */
@@ -73,10 +75,6 @@
   align-items: center;
   justify-content: center;
   background: #fff;
-}
-
-.save-button {
-  margin-top: 16px;
 }
 
 .hide {
@@ -172,15 +170,6 @@
 .expiry-grp {
   display: flex;
 }
-
-.hide-expiry-btn {
-  border: 1px solid #d7d7d7;
-  padding: 0.5rem 0.75rem;
-  background: none;
-  cursor: pointer;
-}
-
-
 
 .demo-session-timer {
   border: 1px solid #d7d7d7;

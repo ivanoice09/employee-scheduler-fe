@@ -17,26 +17,36 @@
       <span> {{ week.status ?? 'undefined' }} </span>
     </div>
 
-    <button
-      type="button"
-      class="btn-slide toggle-view-btn"
-      [disabled]="!isWeekLocked"
-      (click)="toggleViewMode()"
-    >
-      {{ viewMode === 'edit' ? 'VIEW' : 'EDIT' }}
-    </button>
+    <div class="action-buttons">
+      <button 
+        type="button" 
+        class="btn-slide btn-save" 
+        (click)="save()"
+        [class.hide]="viewMode === 'read'"
+      >
+        SAVE
+      </button>
+      <button
+        type="button"
+        class="btn-slide btn-toggle-view"
+        [disabled]="!isWeekLocked"
+        (click)="toggleViewMode()"
+      >
+        {{ viewMode === 'edit' ? 'VIEW' : 'EDIT' }}
+      </button>
 
-    @if (remainingSeconds$ | async; as remainingSeconds) {
-      <div class="expiry-grp">
-        <button type="button" class="btn-slide hide-expiry-btn" (click)="toggleExpiryTimer()">
-          {{ showOrHide === 'hide' ? 'SHOW' : 'HIDE ' }}
-        </button>
+      @if (remainingSeconds$ | async; as remainingSeconds) {
+        <div class="expiry-grp">
+          <button type="button" class="btn-slide btn-hide-expiry" (click)="toggleExpiryTimer()">
+            {{ showOrHide === 'hide' ? 'SHOW' : 'HIDE ' }}
+          </button>
 
-        <div class="demo-session-timer" [class.hide]="showOrHide === 'hide'">
-          <span style="cursor: default">{{ remainingSeconds | demoSessionTimer }}</span>
+          <div class="demo-session-timer" [class.hide]="showOrHide === 'hide'">
+            <span style="cursor: default">{{ remainingSeconds | demoSessionTimer }}</span>
+          </div>
         </div>
-      </div>
-    }
+      }
+    </div>
   </div>
 
   <form [formGroup]="weekScheduleForm" (ngSubmit)="save()">
@@ -75,7 +85,7 @@
                       @for (field of timeFields; track field.key; let i = $index) {
                         <div
                           class="time-select"
-                          [class.open-up]="shouldOpenUp(employeeIndex)"
+                          [class.open-up]="shouldPopupOnTop(employeeIndex)"
                           (click)="$event.stopPropagation()"
                           (keydown.escape)="closeTimePicker()"
                         >
@@ -108,7 +118,7 @@
                                   [attr.aria-pressed]="shift.get(field.key)?.value === value"
                                   (click)="pickTimeValue(value)"
                                 >
-                                {{ value }}
+                                  {{ value }}
                                 </button>
                               }
                             </div>

@@ -95,10 +95,7 @@ export class Schedule implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
       )
       .subscribe(() => {
-        console.log('Timer reached zero');
-
         this.alertUtil.show('Demo has expired', 'warning');
-
         this.reloadCurrentWeek();
       });
   }
@@ -148,17 +145,6 @@ export class Schedule implements OnInit, OnDestroy {
         }),
       );
     }
-
-  }
-
-
-
-  private splitTime(time: string | null): { hour: string; minute: string } {
-    if (!time) {
-      return { hour: '', minute: '00' };
-    }
-    const [hour, minute] = time.split(':');
-    return { hour: hour ?? '', minute: minute ?? '00' };
   }
 
   private reloadCurrentWeek(): void {
@@ -198,6 +184,14 @@ export class Schedule implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private splitTime(time: string | null): { hour: string; minute: string } {
+    if (!time) {
+      return { hour: '', minute: '00' };
+    }
+    const [hour, minute] = time.split(':');
+    return { hour: hour ?? '', minute: minute ?? '00' };
   }
 
   /**
@@ -396,6 +390,7 @@ export class Schedule implements OnInit, OnDestroy {
     this.scheduleService.saveWeek(payload).subscribe({
       next: () => {
         this.alertUtil.show('Save successful', 'success');
+        this.reloadCurrentWeek();
       },
       error: (err) => console.error(err),
     });
@@ -508,7 +503,7 @@ export class Schedule implements OnInit, OnDestroy {
     );
   }
 
-  shouldOpenUp(employeeIndex: number): boolean {
+  shouldPopupOnTop(employeeIndex: number): boolean {
     const total = this.shiftAssignmentsFormArray.controls.length;
     return total - employeeIndex <= 4;
   }
@@ -521,32 +516,6 @@ export class Schedule implements OnInit, OnDestroy {
 
   toggleExpiryTimer() {
     this.showOrHide = this.showOrHide === 'show' ? 'hide' : 'show';
-  }
-
-  // ====================================
-  // NAVBAR SAVE BUTTON UTILITY FUNCTI0NS
-  // ====================================
-
-  hasSavableShifts(): boolean {
-    return this.shiftAssignmentsFormArray.controls.some((assignment) =>
-      this.shiftsOf(assignment).controls.some((shift) => {
-        const group = shift as FormGroup;
-
-        const startsAt = this.toTime(
-          group.get('startHour')?.value,
-          group.get('startMinute')?.value,
-        );
-
-        const endsAt = this.toTime(group.get('endHour')?.value, group.get('endMinute')?.value);
-
-        if (!startsAt || !endsAt) {
-          return false;
-        }
-
-        // Reject zero-duration shifts such as 08:00 - 08:00
-        return startsAt !== endsAt;
-      }),
-    );
   }
 }
 
