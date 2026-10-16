@@ -117,46 +117,14 @@
                   @if (viewMode === 'edit') {
                     <div [formGroupName]="dayIndex" class="shift-editor">
                       @for (field of timeFields; track field.key; let i = $index) {
-                        <div
-                          class="time-select"
-                          [class.open-up]="shouldPopupOnTop(employeeIndex)"
-                          (click)="$event.stopPropagation()"
-                          (keydown.escape)="closeTimePicker()"
-                        >
-                          <input
-                            type="text"
-                            inputmode="numeric"
-                            maxlength="2"
-                            pattern="[0-9]{0,2}"
-                            autocomplete="off"
-                            [placeholder]="field.placeholder"
-                            [formControlName]="field.key"
-                            [attr.data-time-type]="field.type"
-                            [attr.aria-label]="field.type"
-                            [attr.aria-expanded]="
-                              isTimePickerOpen(employeeIndex, dayIndex, field.key)
-                            "
-                            (click)="openTimePicker(employeeIndex, dayIndex, field.key)"
-                            (blur)="formatTimeInputOnBlur($event)"
-                            (keydown.tab)="closeTimePicker()"
-                          />
 
-                          @if (isTimePickerOpen(employeeIndex, dayIndex, field.key)) {
-                            <div class="time-select-options">
-                              @for (value of field.type === 'hour' ? hours : minutes; track value) {
-                                <button
-                                  type="button"
-                                  class="time-select-option"
-                                  [class.selected]="shift.get(field.key)?.value === value"
-                                  [attr.aria-pressed]="shift.get(field.key)?.value === value"
-                                  (click)="pickTimeValue(value)"
-                                >
-                                  {{ value }}
-                                </button>
-                              }
-                            </div>
-                          }
-                        </div>
+                        <app-time-picker 
+                          [pickerId]="employeeIndex + '-' + dayIndex + '-' + field.key"
+                          [type]="field.type"
+                          [popupOnTop]="shouldPopupOnTop(employeeIndex)"
+                          [formControlName]="field.key"
+                        />
+
                         @if (i === 0 || i === 2) {
                           <span>:</span>
                         } @else if (i === 1) {

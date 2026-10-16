@@ -1,5 +1,5 @@
 import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -14,9 +14,10 @@ import { BehaviorSubject, delay, filter, finalize, Subject, switchMap, takeUntil
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
 import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
 import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
-import { DemoSessionHelper } from '../../shared/services/helpers/demo-session-helper';
+import { DemoSessionHelper } from '../../shared/helpers/demo-session-helper';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
-import { AlertUtil } from '../../shared/services/utils/alert-util';
+import { AlertUtil } from '../../shared/utils/alert-util';
+import { TimePicker } from '../../shared/components/time-picker/time-picker';
 
 @Component({
   selector: 'app-schedule',
@@ -28,13 +29,10 @@ import { AlertUtil } from '../../shared/services/utils/alert-util';
     SlicePipe,
     UpperCasePipe,
     DemoSessionTimerPipe,
+    TimePicker,
   ],
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
-  host: {
-    '(document:click)': 'closeTimePicker()',
-    '(document:keydown.escape)': 'closeTimePicker()',
-  },
 })
 export class Schedule implements OnInit, OnDestroy {
   private weekSubject = new BehaviorSubject<WeekDTO | null>(null);
@@ -45,15 +43,6 @@ export class Schedule implements OnInit, OnDestroy {
 
   dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  /**
-   * Makes a new array with 24 items.
-   * The underscore is just a placeholder to ignore the first argument.
-   * Turns the number into a 2-digit string, so 0 becomes "00" and 9 becomes "09"
-   */
-  hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-
-  minutes = ['00', '15', '30', '45'];
-
   private formBuilder = inject(FormBuilder);
   private scheduleService = inject(ScheduleService);
   private route = inject(ActivatedRoute);
@@ -61,15 +50,7 @@ export class Schedule implements OnInit, OnDestroy {
   private router = inject(Router);
 
   weekNavigationForm = this.formBuilder.group({
-    weekNumber: [
-      0,
-      [
-        Validators.required,
-        Validators.min(1),
-        Validators.max(53),
-        integerValidator,
-      ],
-    ],
+    weekNumber: [0, [Validators.required, Validators.min(1), Validators.max(53), integerValidator]],
   });
 
   changeWeek(): void {
@@ -143,7 +124,7 @@ export class Schedule implements OnInit, OnDestroy {
 
     this.weekNavigationForm.patchValue({
       weekNumber: week.weekNumber,
-    })
+    });
 
     this.weekScheduleForm.patchValue({
       year: week.year,
@@ -203,7 +184,7 @@ export class Schedule implements OnInit, OnDestroy {
       .getWeek(week.year, week.weekNumber)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => (this.reloading = false))
+        finalize(() => (this.reloading = false)),
       )
       .subscribe({
         next: (newWeek) => {
@@ -437,19 +418,19 @@ export class Schedule implements OnInit, OnDestroy {
     this.saving = true;
 
     this.scheduleService
-    .saveWeek(payload)
-    .pipe(
-      // delay(600), // just to show if spinner animation works
-      takeUntil(this.destroy$),
-      finalize(() => (this.saving = false)),
-    )
-    .subscribe({
-      next: () => {
-        this.alertUtil.show('Save successful', 'success');
-        this.reloadCurrentWeek();
-      },
-      error: (err) => console.error(err),
-    });
+      .saveWeek(payload)
+      .pipe(
+        // delay(600), // just to show if spinner animation works
+        takeUntil(this.destroy$),
+        finalize(() => (this.saving = false)),
+      )
+      .subscribe({
+        next: () => {
+          this.alertUtil.show('Save successful', 'success');
+          this.reloadCurrentWeek();
+        },
+        error: (err) => console.error(err),
+      });
   }
 
   /**
@@ -494,51 +475,9 @@ export class Schedule implements OnInit, OnDestroy {
     inputs.forEach((input) => input.blur());
   }
 
-  // ==================================
-  // SELECT COMPONENT UTILITY FUNCTIONS
-  // ==================================
-
-  /**
-   * This is a status flag. When a time input box is clicked
-   * and focused on, this property will be filled with sub properties
-   * like the index of the selected employee, day, and a fieldType(startHour,
-   * startMinute, endHour, endMinute).
-   */
-  activeTimeInput: {
-    employeeIndex: number;
-    dayIndex: number;
-    fieldType: 'startHour' | 'startMinute' | 'endHour' | 'endMinute';
-  } | null = null;
-
-  // Fills accordion status with required subproperties.
-  openTimePicker(
-    employeeIndex: number,
-    dayIndex: number,
-    fieldType: 'startHour' | 'startMinute' | 'endHour' | 'endMinute',
-  ): void {
-    this.activeTimeInput = { employeeIndex, dayIndex, fieldType };
-  }
-
-  // If the flag activeTimeInput NOT null, let the user pick a time value.
-  pickTimeValue(value: string): void {
-    if (!this.activeTimeInput) {
-      return;
-    }
-
-    const { employeeIndex, dayIndex, fieldType } = this.activeTimeInput;
-
-    const shiftGroup = this.getShiftsByEmployeeIndex(employeeIndex).at(dayIndex) as FormGroup;
-    const control = shiftGroup.get(fieldType);
-
-    control?.setValue(value);
-
-    this.activeTimeInput = null;
-  }
-
-  // close SELECT component when clicking outside
-  closeTimePicker(): void {
-    this.activeTimeInput = null;
-  }
+  // ==========
+  // TimePicker
+  // ==========
 
   readonly timeFields = [
     { key: 'startHour', placeholder: 'HH', type: 'hour' },
@@ -546,18 +485,6 @@ export class Schedule implements OnInit, OnDestroy {
     { key: 'endHour', placeholder: 'HH', type: 'hour' },
     { key: 'endMinute', placeholder: 'MM', type: 'minute' },
   ] as const;
-
-  isTimePickerOpen(
-    employeeIndex: number,
-    dayIndex: number,
-    fieldType: 'startHour' | 'startMinute' | 'endHour' | 'endMinute',
-  ): boolean {
-    return (
-      this.activeTimeInput?.employeeIndex === employeeIndex &&
-      this.activeTimeInput?.dayIndex === dayIndex &&
-      this.activeTimeInput?.fieldType === fieldType
-    );
-  }
 
   shouldPopupOnTop(employeeIndex: number): boolean {
     const total = this.shiftAssignmentsFormArray.controls.length;
@@ -575,9 +502,7 @@ export class Schedule implements OnInit, OnDestroy {
   }
 }
 
-/**
- * A integer validator mainly used by the week number input
- */
+// A integer validator mainly used by the week number input
 function integerValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
 
@@ -585,9 +510,7 @@ function integerValidator(control: AbstractControl): ValidationErrors | null {
     return null;
   }
 
-  return Number.isInteger(Number(value))
-    ? null
-    : { notInteger: true }
+  return Number.isInteger(Number(value)) ? null : { notInteger: true };
 }
 
 @Component({

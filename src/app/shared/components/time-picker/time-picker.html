@@ -1,0 +1,40 @@
+<div
+  class="time-picker"
+  [class.open-up]="popupOnTop()"
+  [class.disabled]="isDisabled()"
+  (click)="onContainerClick($event)"
+>
+  <input
+    type="text"
+    inputmode="numeric"
+    maxlength="2"
+    pattern="[0-9]{0,2}"
+    autocomplete="off"
+    [placeholder]="type() === 'hour' ? 'HH' : 'MM'"
+    [value]="value()"
+    [disabled]="isDisabled()"
+    [attr.aria-label]="type()"
+    [attr.aria-expanded]="isOpen()"
+    (click)="toggle()"
+    (input)="onInput($event)"
+    (blur)="normalizeOnBlur($event)"
+  />
+
+  @if (isOpen()) {
+    <div class="time-picker-options" role="listbox">
+      @for (option of options(); track option) {
+        <button
+          type="button"
+          class="time-picker-option"
+          role="option"
+          [disabled]="isDisabled()"
+          [class.selected]="value() === option"
+          [attr.aria-selected]="value() === option"
+          (click)="select(option)"
+        >
+          {{ option }}
+        </button>
+      }
+    </div>
+  }
+</div>

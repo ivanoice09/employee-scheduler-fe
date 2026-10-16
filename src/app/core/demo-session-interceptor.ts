@@ -1,5 +1,5 @@
 import { HttpEvent, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
-import { DemoSessionHelper } from '../shared/services/helpers/demo-session-helper';
+import { DemoSessionHelper } from '../shared/helpers/demo-session-helper';
 import { inject } from '@angular/core';
 import { tap } from 'rxjs';
 
