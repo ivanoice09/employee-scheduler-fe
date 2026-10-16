@@ -1,4 +1,4 @@
-@if (week$ | async; as week) {
+@if (week(); as week) {
   <div class="controlBar">
 
     <div class="schedule-details">
@@ -50,22 +50,22 @@
         type="button"
         class="btn-slide btn-save"
         (click)="save()"
-        [disabled]="saving"
-        [class.hide]="viewMode === 'read'"
+        [disabled]="saving()"
+        [class.hide]="viewMode() === 'read'"
       >
-        @if (saving) {
+        @if (saving()) {
           <span class="btn-save-spinner" aria-hidden="true"></span>
         }
-        {{ saving ? '' : 'SAVE' }}
+        {{ saving() ? '' : 'SAVE' }}
       </button>
       
       <button
         type="button"
         class="btn-slide btn-toggle-view"
-        [disabled]="!isWeekLocked"
+        [disabled]="!isWeekLocked()"
         (click)="toggleViewMode()"
       >
-        {{ viewMode === 'edit' ? 'VIEW' : 'EDIT' }}
+        {{ viewMode() === 'edit' ? 'VIEW' : 'EDIT' }}
       </button>
 
       @if (remainingSeconds$ | async; as remainingSeconds) {
@@ -84,7 +84,7 @@
   </div>
 
   <form [formGroup]="weekScheduleForm" (ngSubmit)="save()">
-    <div class="schedule-grid" [class.schedule-grid--loading]="reloading">
+    <div class="schedule-grid" [class.schedule-grid--loading]="reloading()">
       <!-- Header row -->
       <div class="header-cell employee-header">
         <span>EMPLOYEES</span>
@@ -94,7 +94,7 @@
         <div class="header-cell specific-date">
           <span>{{ dayName | slice: 0 : 3 | uppercase }}</span>
           <span>
-            {{ getDateForDay(week.startDate, $index) | date: 'dd' }}
+            {{ week.startDate | dayOffset:$index | date: 'dd' }}
           </span>
         </div>
       }
@@ -114,7 +114,7 @@
             <ng-container formArrayName="shifts">
               @for (shift of shiftsOf(assignment).controls; track $index; let dayIndex = $index) {
                 <div class="shift-cell">
-                  @if (viewMode === 'edit') {
+                  @if (viewMode() === 'edit') {
                     <div [formGroupName]="dayIndex" class="shift-editor">
                       @for (field of timeFields; track field.key; let i = $index) {
 
@@ -134,7 +134,7 @@
                     </div>
                   } @else {
                     <span class="shift-text">
-                      {{ formatShiftIntoText(employeeIndex, dayIndex) }}
+                      {{ shift | shiftText }}
                     </span>
                   }
                 </div>

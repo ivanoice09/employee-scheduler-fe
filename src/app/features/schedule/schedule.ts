@@ -10,7 +10,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
+import { BehaviorSubject, delay, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
 import { TimePicker } from '../../shared/components/time-picker/time-picker';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
 import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
@@ -19,6 +19,10 @@ import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe
 import { ScheduleService } from '../../shared/services/http/schedule-service';
 import { AlertUtil } from '../../shared/utils/alert-util';
 import { ScheduleFormService, WeekScheduleForm } from '../../shared/services/schedule-form-service';
+import { ShiftTextPipe } from '../../shared/pipes/shift-text-pipe';
+import { toTime } from '../../shared/utils/date-time-util';
+import { DayOffsetPipe } from '../../shared/pipes/day-offset-pipe';
+import { SchedulePayloadMapper } from '../../shared/mappers/schedule-payload-mapper';
 
 @Component({
   selector: 'app-schedule',
@@ -30,16 +34,14 @@ import { ScheduleFormService, WeekScheduleForm } from '../../shared/services/sch
     SlicePipe,
     UpperCasePipe,
     DemoSessionTimerPipe,
+    ShiftTextPipe,
+    DayOffsetPipe,
     TimePicker,
   ],
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
 })
 export class Schedule implements OnInit, OnDestroy {
-  private weekSubject = new BehaviorSubject<WeekDTO | null>(null);
-
-  week$ = this.weekSubject.asObservable();
-
   readonly dayIndexes = Array.from({ length: 7 }, (_, index) => index);
 
   dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -50,42 +52,20 @@ export class Schedule implements OnInit, OnDestroy {
   private alertUtil = inject(AlertUtil);
   private router = inject(Router);
   private scheduleFormService = inject(ScheduleFormService);
+  private schedulePayloadMapper = inject(SchedulePayloadMapper);
+
+  week = signal<WeekDTO | null>(null);
+  viewMode = signal<'edit' | 'read'>('edit');
+  reloading = signal(false);
+  saving = signal(false);
 
   weekNavigationForm = this.formBuilder.group({
     weekNumber: [0, [Validators.required, Validators.min(1), Validators.max(53), integerValidator]],
   });
 
-  changeWeek(): void {
-    const weekControl = this.weekNavigationForm.get('weekNumber');
-
-    if (!weekControl || weekControl.invalid) {
-      weekControl?.markAsTouched();
-      return;
-    }
-
-    const week = this.weekSubject.getValue();
-    if (!week) {
-      return;
-    }
-
-    const newWeekNumber = Number(weekControl.value);
-
-    if (newWeekNumber === week.weekNumber) {
-      return;
-    }
-
-    this.router.navigate(['/schedule', week.year, newWeekNumber]);
-  }
-
   weekScheduleForm!: FormGroup<WeekScheduleForm>;
 
   currentWeekStartDate = '';
-
-  /**
-   * 'edit' = form with input boxes
-   * 'read' = plain text (HH:MM–HH:MM or OFF)
-   */
-  viewMode: 'edit' | 'read' = 'edit';
 
   private readonly destroy$ = new Subject<void>();
   private demoSessionHelper = inject(DemoSessionHelper);
@@ -117,7 +97,7 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   private loadWeekIntoForm(week: WeekDTO): void {
-    this.weekSubject.next(week);
+    this.week.set(week);
     this.currentWeekStartDate = week.startDate;
 
     this.weekNavigationForm.patchValue({
@@ -127,22 +107,20 @@ export class Schedule implements OnInit, OnDestroy {
     this.weekScheduleForm = this.scheduleFormService.buildWeekForm(week);
   }
 
-  reloading = false;
-
   private reloadCurrentWeek(): void {
-    const week = this.weekSubject.getValue();
+    const week = this.week();
 
-    if (!week || this.reloading) {
+    if (!week || this.reloading()) {
       return;
     }
 
-    this.reloading = true;
+    this.reloading.set(true);
 
     this.scheduleService
       .getWeek(week.year, week.weekNumber)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => (this.reloading = false)),
+        finalize(() => this.reloading.set(false)),
       )
       .subscribe({
         next: (newWeek) => {
@@ -157,6 +135,29 @@ export class Schedule implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  changeWeek(): void {
+    const weekControl = this.weekNavigationForm.get('weekNumber');
+
+    if (!weekControl || weekControl.invalid) {
+      weekControl?.markAsTouched();
+      return;
+    }
+
+    const week = this.week();
+
+    if (!week) {
+      return;
+    }
+
+    const newWeekNumber = Number(weekControl.value);
+
+    if (newWeekNumber === week.weekNumber) {
+      return;
+    }
+
+    this.router.navigate(['/schedule', week.year, newWeekNumber]);
   }
 
   /**
@@ -187,10 +188,7 @@ export class Schedule implements OnInit, OnDestroy {
    * So if the status is DRAFT, PUBLISHED, or LOCKED return TRUE.
    * If TRUE then the view toggler button is ENABLED.
    */
-  get isWeekLocked(): boolean {
-    const week = this.weekSubject.getValue();
-    return week?.status != null;
-  }
+  isWeekLocked = computed(() => this.week()?.status != null);
 
   /**
    * Toggle between 'edit' and 'read' modes.
@@ -200,7 +198,7 @@ export class Schedule implements OnInit, OnDestroy {
     if (!this.isWeekLocked) {
       return;
     }
-    this.viewMode = this.viewMode === 'edit' ? 'read' : 'edit';
+    this.viewMode() === 'edit' ? 'read' : 'edit';
   }
 
   /**
@@ -221,8 +219,8 @@ export class Schedule implements OnInit, OnDestroy {
     const endHour = shiftGroup.get('endHour')?.value as string;
     const endMinute = shiftGroup.get('endMinute')?.value as string;
 
-    const startsAt = this.toTime(startHour, startMinute);
-    const endsAt = this.toTime(endHour, endMinute);
+    const startsAt = toTime(startHour, startMinute);
+    const endsAt = toTime(endHour, endMinute);
 
     if (!startsAt || !endsAt) {
       return null;
@@ -231,87 +229,19 @@ export class Schedule implements OnInit, OnDestroy {
     return { startsAt, endsAt };
   }
 
-  /**
-   * Calls getShiftForCell() and unifies startsAt and endsAt then returns them
-   * into one single string. And finally displays the string into the template.
-   */
-  formatShiftIntoText(employeeIndex: number, dayIndex: number): string {
-    const shift = this.getShiftForCell(employeeIndex, dayIndex);
-    if (!shift) {
-      return 'OFF';
-    }
-    return `${shift.startsAt} – ${shift.endsAt}`;
-  }
-
-  /**
-   * Returns a new Date calculated by adding or subtracting the specified
-   * number of days from the given start date.
-   *
-   * The start date must use the ISO-like `YYYY-MM-DD` format, e.g. `"2026-10-12"`.
-   * The month is converted from its 1-based representation (`1`–`12`) to
-   * JavaScript's 0-based month index (`0`–`11`).
-   *
-   * @param startDate - The base date in `YYYY-MM-DD` format.
-   * @param offset - The number of days to add. Use a negative value to subtract days.
-   * @returns A new `Date` representing the start date shifted by `offset` days.
-   *
-   * @example
-   * // Returns a Date representing 2026-10-15
-   * getDateForDay("2026-10-12", 3);
-   *
-   * @example
-   * // Returns a Date representing 2026-10-11
-   * getDateForDay("2026-10-12", -1);
-   */
-  getDateForDay(startDate: string, offset: number): Date {
-    const [year, month, day] = startDate.split('-').map(Number);
-    return new Date(Date.UTC(year, month - 1, day + offset));
-  }
-
-  saving = false;
-
   save(): void {
-    this.blurAllTimeInputs();
-
     const raw = this.weekScheduleForm.getRawValue();
 
-    const payload: SaveWeekDTO = {
-      year: raw.year ?? 0,
-      weekNumber: raw.weekNumber ?? 0,
-      weekStartDate: this.currentWeekStartDate,
-      assignments: (raw.shiftAssignments ?? []).map((assignment: any) => {
-        const shifts = (assignment.shifts ?? [])
-          .map((shift: any) => {
-            const startsAt = this.toTime(shift.startHour, shift.startMinute);
-            const endsAt = this.toTime(shift.endHour, shift.endMinute);
+    const payload = this.schedulePayloadMapper.toSaveWeekDto(raw, this.currentWeekStartDate);
 
-            if (!startsAt || !endsAt) {
-              return null;
-            }
-
-            return {
-              actualDate: shift.actualDate,
-              startsAt,
-              endsAt,
-            };
-          })
-          .filter((s: any) => s !== null);
-
-        return {
-          employeeId: assignment.employeeId,
-          shifts,
-        };
-      }),
-    };
-
-    this.saving = true;
+    this.saving.set(true);
 
     this.scheduleService
       .saveWeek(payload)
       .pipe(
         // delay(600), // just to show if spinner animation works
         takeUntil(this.destroy$),
-        finalize(() => (this.saving = false)),
+        finalize(() => this.saving.set(false)),
       )
       .subscribe({
         next: () => {
@@ -320,48 +250,6 @@ export class Schedule implements OnInit, OnDestroy {
         },
         error: (err) => console.error(err),
       });
-  }
-
-  /**
-   * Even though edge case function formatTimeInputOnBlur() already exists,
-   * this function still validates the input hour and minute from the FORM
-   * before being SAVED.
-   *
-   * @param hour
-   * @param minute
-   * @returns a stringyfied pair of `hour`:`minute` with padding so for example
-   * instead of "7" it becomes "07"
-   */
-  private toTime(hour: string, minute: string): string | null {
-    if (!hour || !minute) {
-      return null;
-    }
-
-    if (!/^\d{1,2}$/.test(hour) || !/^\d{1,2}$/.test(minute)) {
-      return null;
-    }
-
-    const hourNumber = Number(hour);
-    const minuteNumber = Number(minute);
-
-    if (hourNumber < 0 || hourNumber > 23) {
-      return null;
-    }
-    if (minuteNumber < 0 || minuteNumber > 59) {
-      return null;
-    }
-
-    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-  }
-
-  /**
-   * EDGE CASE FUNCTION, HELPER
-   * The user might not "unfocus" one of the input box before saving,
-   * so this function removes the focus and then clamp it to 00.
-   */
-  private blurAllTimeInputs(): void {
-    const inputs = document.querySelectorAll<HTMLInputElement>('input[data-time-type]');
-    inputs.forEach((input) => input.blur());
   }
 
   // ==========
