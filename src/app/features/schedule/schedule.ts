@@ -1,5 +1,5 @@
 import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -10,14 +10,15 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, delay, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
+import { BehaviorSubject, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
+import { TimePicker } from '../../shared/components/time-picker/time-picker';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
 import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
-import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
 import { DemoSessionHelper } from '../../shared/helpers/demo-session-helper';
+import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
 import { AlertUtil } from '../../shared/utils/alert-util';
-import { TimePicker } from '../../shared/components/time-picker/time-picker';
+import { ScheduleFormService, WeekScheduleForm } from '../../shared/services/schedule-form-service';
 
 @Component({
   selector: 'app-schedule',
@@ -48,6 +49,7 @@ export class Schedule implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private alertUtil = inject(AlertUtil);
   private router = inject(Router);
+  private scheduleFormService = inject(ScheduleFormService);
 
   weekNavigationForm = this.formBuilder.group({
     weekNumber: [0, [Validators.required, Validators.min(1), Validators.max(53), integerValidator]],
@@ -75,11 +77,7 @@ export class Schedule implements OnInit, OnDestroy {
     this.router.navigate(['/schedule', week.year, newWeekNumber]);
   }
 
-  weekScheduleForm = this.formBuilder.group({
-    year: [0],
-    weekNumber: [0],
-    shiftAssignments: this.formBuilder.array<FormGroup>([]),
-  });
+  weekScheduleForm!: FormGroup<WeekScheduleForm>;
 
   currentWeekStartDate = '';
 
@@ -126,47 +124,7 @@ export class Schedule implements OnInit, OnDestroy {
       weekNumber: week.weekNumber,
     });
 
-    this.weekScheduleForm.patchValue({
-      year: week.year,
-      weekNumber: week.weekNumber,
-    });
-
-    const assignments = this.shiftAssignmentsFormArray;
-    assignments.clear();
-
-    const assignmentByEmployeeId = new Map(week.assignments.map((a) => [a.employeeId, a]));
-
-    for (const employee of week.employees) {
-      const employeeAssignment = assignmentByEmployeeId.get(employee.employeeId);
-
-      assignments.push(
-        this.formBuilder.group({
-          employeeId: [employee.employeeId],
-          // employeeName: [`${employee.firstName} ${employee.lastName}`],
-          employeeName: [employee.firstName],
-          shifts: this.formBuilder.array(
-            Array.from({ length: 7 }, (_, dayIndex) => {
-              const actualDate = this.formatDateForApi(week.startDate, dayIndex);
-
-              const savedShift = employeeAssignment?.shifts.find(
-                (s) => s.actualDate === actualDate,
-              );
-
-              const start = this.splitTime(savedShift?.startsAt ?? null);
-              const end = this.splitTime(savedShift?.endsAt ?? null);
-
-              return this.formBuilder.group({
-                actualDate: [actualDate],
-                startHour: [start.hour],
-                startMinute: [start.minute],
-                endHour: [end.hour],
-                endMinute: [end.minute],
-              });
-            }),
-          ),
-        }),
-      );
-    }
+    this.weekScheduleForm = this.scheduleFormService.buildWeekForm(week);
   }
 
   reloading = false;
@@ -196,28 +154,9 @@ export class Schedule implements OnInit, OnDestroy {
       });
   }
 
-  private clearScheduleForm(): void {
-    this.weekScheduleForm.reset({
-      year: 0,
-      weekNumber: 0,
-    });
-
-    this.shiftAssignmentsFormArray.clear();
-    this.weekSubject.next(null);
-    this.currentWeekStartDate = '';
-  }
-
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private splitTime(time: string | null): { hour: string; minute: string } {
-    if (!time) {
-      return { hour: '', minute: '00' };
-    }
-    const [hour, minute] = time.split(':');
-    return { hour: hour ?? '', minute: minute ?? '00' };
   }
 
   /**
@@ -305,47 +244,6 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * Edge case where users might type unwanted inputs.
-   * This function blurs or clamps them into more secure inputs:
-   * Typing 0 only → blur → 00
-   * Typing 9 only → blur → 09
-   * Typing 25-99 in hour input → input clamps it to 23
-   */
-  formatTimeInputOnBlur(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const timeType = input.dataset['timeType'] as 'hour' | 'minute' | undefined;
-    const raw = input.value.trim();
-
-    if (!raw) {
-      input.value = '';
-      return;
-    }
-
-    const num = Number(raw);
-
-    if (!/^\d{1,2}$/.test(raw)) {
-      input.value = '';
-      return;
-    }
-
-    if (timeType === 'hour') {
-      if (num < 0 || num > 23) {
-        input.value = '';
-        return;
-      }
-
-      input.value = num.toString().padStart(2, '0');
-    } else if (timeType === 'minute') {
-      if (num < 0 || num > 59) {
-        input.value = '00';
-        return;
-      }
-
-      input.value = num.toString().padStart(2, '0');
-    }
-  }
-
-  /**
    * Returns a new Date calculated by adding or subtracting the specified
    * number of days from the given start date.
    *
@@ -368,15 +266,6 @@ export class Schedule implements OnInit, OnDestroy {
   getDateForDay(startDate: string, offset: number): Date {
     const [year, month, day] = startDate.split('-').map(Number);
     return new Date(Date.UTC(year, month - 1, day + offset));
-  }
-
-  // HELPER
-  formatDateForApi(startDate: string, offset: number): string {
-    const date = this.getDateForDay(startDate, offset);
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const yyyy = date.getFullYear();
-    return `${yyyy}-${mm}-${dd}`;
   }
 
   saving = false;
