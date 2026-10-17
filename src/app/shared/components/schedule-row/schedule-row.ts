@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TimePickerCoordinator } from '../../helpers/time-picker-coordinator';
-import { AbstractControl, FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { TimePicker } from '../time-picker/time-picker';
 import { ShiftTextPipe } from '../../pipes/shift-text-pipe';
 import { EmployeeScheduleForm } from '../../services/schedule-form-service';
+import { TimePicker } from '../time-picker/time-picker';
 
 export type ScheduleViewMode = 'edit' | 'read';
 

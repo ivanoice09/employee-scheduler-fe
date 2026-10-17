@@ -3,11 +3,11 @@ import { inject, Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { WeekDTO } from '../../DTO/GET/WeekDTO';
 import { SaveWeekDTO } from '../../DTO/POST/SaveWeekDTO ';
-import { DemoSessionInfo } from '../../DTO/GET/DemoSessionInfo';
+import { environment } from '../../../../environments/environment.development';
 
 @Service()
 export class ScheduleService {
-  private baseUrl = 'http://localhost:8081/api/schedule';
+  private baseUrl = `${environment.apiUrl}/schedule`;
 
   private http = inject(HttpClient);
 
