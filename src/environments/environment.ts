@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://toBeDecided.com/api'
+    apiUrl: 'https://swiftshifter.netlify.app/api'
 };
