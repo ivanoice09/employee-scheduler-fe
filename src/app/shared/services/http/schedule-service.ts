@@ -3,7 +3,7 @@ import { inject, Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { WeekDTO } from '../../DTO/GET/WeekDTO';
 import { SaveWeekDTO } from '../../DTO/POST/SaveWeekDTO ';
-import { environment } from '../../../../environments/environment.development';
+import { environment } from '../../../../environments/environment';
 
 @Service()
 export class ScheduleService {
