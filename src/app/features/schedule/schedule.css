@@ -104,7 +104,7 @@
 
 .schedule-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 220px) repeat(7, minmax(110px, 1fr));
+  grid-template-columns: 180px repeat(7, 1fr);
   row-gap: 10px;
   overflow-x: auto;
 }
@@ -114,9 +114,7 @@
   pointer-events: none;
 }
 
-.header-cell,
-.employee-cell,
-.shift-cell {
+.header-cell {
   min-height: 60px;
   border-bottom: 1px solid #d7d7d7;
   border-top: 1px solid #d7d7d7;
@@ -130,15 +128,6 @@
   border-left: 1px solid #d7d7d7;
 }
 
-.employee-cell {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  font-weight: 500;
-  padding: 10px;
-  border-left: 1px solid #d7d7d7;
-}
-
 .specific-date {
   display: flex;
   justify-content: center;
@@ -146,36 +135,8 @@
   gap: 10px;
 }
 
-.shift-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-}
-
 .hide {
   display: none;
-}
-
-/* ================== */
-/* SHIFT-CELL STYLING */
-/* ================== */
-
-.shift-cell {
-  position: relative;
-  padding: 0 0.4rem;
-  background-color: transparent;
-  transition: background-color 0.15s ease;
-}
-
-.shift-cell:focus-within {
-  background-color: rgb(238, 238, 238);
-}
-
-.shift-editor {
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 /* =================== */

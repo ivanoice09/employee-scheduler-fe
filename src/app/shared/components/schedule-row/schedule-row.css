@@ -1,0 +1,44 @@
+:host {
+    display: contents;
+}
+
+.employee-cell,
+.shift-cell {
+  min-height: 60px;
+  border-bottom: 1px solid #d7d7d7;
+  border-top: 1px solid #d7d7d7;
+  border-right: 1px solid #d7d7d7;
+}
+
+.shift-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.employee-cell {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  font-weight: 500;
+  padding: 10px;
+  border-left: 1px solid #d7d7d7;
+}
+
+.shift-cell {
+  position: relative;
+  padding: 0 0.4rem;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.shift-cell:focus-within {
+  background-color: rgb(238, 238, 238);
+}
+
+.shift-editor {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

@@ -102,45 +102,16 @@
       <!-- Employee rows -->
       <ng-container formArrayName="shiftAssignments">
         @for (
-          assignment of shiftAssignmentsFormArray.controls;
+          assignment of weekScheduleForm.controls.shiftAssignments.controls;
           track $index;
           let employeeIndex = $index
         ) {
-          <ng-container [formGroupName]="employeeIndex">
-            <div class="employee-cell">
-              <span>{{ assignment.get('employeeName')?.value }}</span>
-            </div>
-
-            <ng-container formArrayName="shifts">
-              @for (shift of shiftsOf(assignment).controls; track $index; let dayIndex = $index) {
-                <div class="shift-cell">
-                  @if (viewMode() === 'edit') {
-                    <div [formGroupName]="dayIndex" class="shift-editor">
-                      @for (field of timeFields; track field.key; let i = $index) {
-
-                        <app-time-picker 
-                          [pickerId]="employeeIndex + '-' + dayIndex + '-' + field.key"
-                          [type]="field.type"
-                          [popupOnTop]="shouldPopupOnTop(employeeIndex)"
-                          [formControlName]="field.key"
-                        />
-
-                        @if (i === 0 || i === 2) {
-                          <span>:</span>
-                        } @else if (i === 1) {
-                          <span>-</span>
-                        }
-                      }
-                    </div>
-                  } @else {
-                    <span class="shift-text">
-                      {{ shift | shiftText }}
-                    </span>
-                  }
-                </div>
-              }
-            </ng-container>
-          </ng-container>
+          <app-schedule-row
+            [assignment]="assignment"
+            [employeeIndex]="employeeIndex"
+            [viewMode]="viewMode()"
+            [popupOnTop]="shouldPopupOnTop(employeeIndex)"
+          />
         }
       </ng-container>
     </div>

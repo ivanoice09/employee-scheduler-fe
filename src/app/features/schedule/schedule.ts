@@ -23,6 +23,7 @@ import { ShiftTextPipe } from '../../shared/pipes/shift-text-pipe';
 import { toTime } from '../../shared/utils/date-time-util';
 import { DayOffsetPipe } from '../../shared/pipes/day-offset-pipe';
 import { SchedulePayloadMapper } from '../../shared/mappers/schedule-payload-mapper';
+import { ScheduleRow } from '../../shared/components/schedule-row/schedule-row';
 
 @Component({
   selector: 'app-schedule',
@@ -34,18 +35,13 @@ import { SchedulePayloadMapper } from '../../shared/mappers/schedule-payload-map
     SlicePipe,
     UpperCasePipe,
     DemoSessionTimerPipe,
-    ShiftTextPipe,
     DayOffsetPipe,
-    TimePicker,
-  ],
+    ScheduleRow
+],
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
 })
 export class Schedule implements OnInit, OnDestroy {
-  readonly dayIndexes = Array.from({ length: 7 }, (_, index) => index);
-
-  dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
   private formBuilder = inject(FormBuilder);
   private scheduleService = inject(ScheduleService);
   private route = inject(ActivatedRoute);
@@ -66,6 +62,8 @@ export class Schedule implements OnInit, OnDestroy {
   weekScheduleForm!: FormGroup<WeekScheduleForm>;
 
   currentWeekStartDate = '';
+
+  dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   private readonly destroy$ = new Subject<void>();
   private demoSessionHelper = inject(DemoSessionHelper);
@@ -255,13 +253,6 @@ export class Schedule implements OnInit, OnDestroy {
   // ==========
   // TimePicker
   // ==========
-
-  readonly timeFields = [
-    { key: 'startHour', placeholder: 'HH', type: 'hour' },
-    { key: 'startMinute', placeholder: 'MM', type: 'minute' },
-    { key: 'endHour', placeholder: 'HH', type: 'hour' },
-    { key: 'endMinute', placeholder: 'MM', type: 'minute' },
-  ] as const;
 
   shouldPopupOnTop(employeeIndex: number): boolean {
     const total = this.shiftAssignmentsFormArray.controls.length;
