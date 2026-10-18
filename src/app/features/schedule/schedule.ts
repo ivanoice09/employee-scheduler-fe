@@ -36,8 +36,8 @@ import { ScheduleRow } from '../../shared/components/schedule-row/schedule-row';
     UpperCasePipe,
     DemoSessionTimerPipe,
     DayOffsetPipe,
-    ScheduleRow
-],
+    ScheduleRow,
+  ],
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
 })
@@ -193,10 +193,11 @@ export class Schedule implements OnInit, OnDestroy {
    * Only allowed when get isWeekLocked() is TRUE.
    */
   toggleViewMode(): void {
-    if (!this.isWeekLocked) {
+    if (!this.isWeekLocked()) {
       return;
     }
-    this.viewMode() === 'edit' ? 'read' : 'edit';
+
+    this.viewMode.set(this.viewMode() === 'edit' ? 'read' : 'edit');
   }
 
   /**

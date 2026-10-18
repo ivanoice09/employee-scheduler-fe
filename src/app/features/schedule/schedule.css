@@ -39,7 +39,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid #d7d7d7;
+  border: 1px solid #707070;
   padding: 8px;
   margin-bottom: 10px;
 }
@@ -68,7 +68,7 @@
 .btn-toggle-view,
 .btn-hide-expiry {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d7d7d7;
+  border: 1px solid #707070;
 }
 
 .btn-save {
@@ -116,16 +116,16 @@
 
 .header-cell {
   min-height: 60px;
-  border-bottom: 1px solid #d7d7d7;
-  border-top: 1px solid #d7d7d7;
-  border-right: 1px solid #d7d7d7;
+  border-bottom: 1px solid #707070;
+  border-top: 1px solid #707070;
+  border-right: 1px solid #707070;
 }
 
 .employee-header {
   display: flex;
   align-items: center;
   padding: 10px;
-  border-left: 1px solid #d7d7d7;
+  border-left: 1px solid #707070;
 }
 
 .specific-date {
@@ -148,7 +148,7 @@
 }
 
 .demo-session-timer {
-  border: 1px solid #d7d7d7;
+  border: 1px solid #707070;
   border-left: none;
   padding: 0.5rem 0.75rem;
 }
