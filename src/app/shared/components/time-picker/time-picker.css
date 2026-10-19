@@ -16,9 +16,9 @@
 .time-picker-options {
   position: absolute;
   top: calc(100% + -10px);
-  left: -4px;
+  left: 0;
   right: 0;
-  width: 250px;
+  width: auto;
   z-index: 100;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
