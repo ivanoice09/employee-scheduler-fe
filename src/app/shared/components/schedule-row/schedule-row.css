@@ -49,3 +49,19 @@
 .shift-cell {
   transition: background-color 0.15s ease;
 }
+
+.time-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.minute-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.minute-group--hidden {
+  display: none;
+}

@@ -10,20 +10,17 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, delay, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
-import { TimePicker } from '../../shared/components/time-picker/time-picker';
+import { filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
+import { ScheduleRow } from '../../shared/components/schedule-row/schedule-row';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
-import { SaveWeekDTO } from '../../shared/DTO/POST/SaveWeekDTO ';
 import { DemoSessionHelper } from '../../shared/helpers/demo-session-helper';
+import { SchedulePayloadMapper } from '../../shared/mappers/schedule-payload-mapper';
+import { DayOffsetPipe } from '../../shared/pipes/day-offset-pipe';
 import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
-import { AlertUtil } from '../../shared/utils/alert-util';
 import { ScheduleFormService, WeekScheduleForm } from '../../shared/services/schedule-form-service';
-import { ShiftTextPipe } from '../../shared/pipes/shift-text-pipe';
+import { AlertUtil } from '../../shared/utils/alert-util';
 import { toTime } from '../../shared/utils/date-time-util';
-import { DayOffsetPipe } from '../../shared/pipes/day-offset-pipe';
-import { SchedulePayloadMapper } from '../../shared/mappers/schedule-payload-mapper';
-import { ScheduleRow } from '../../shared/components/schedule-row/schedule-row';
 
 @Component({
   selector: 'app-schedule',
