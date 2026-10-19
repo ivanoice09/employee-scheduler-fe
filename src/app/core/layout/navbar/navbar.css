@@ -38,13 +38,15 @@
   justify-content: space-between;
 
   background: white;
-  border: 1px solid #d7d7d7;
+  border: 1px solid #707070;
   border-radius: inherit;
+
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 }
 
-/* :host(.scrolled) .nav-container {
+:host(.scrolled) .nav-container {
   border-radius: 8px;
-} */
+}
 
 .left-side,
 .right-side {
