@@ -1,119 +1,130 @@
 @if (week(); as week) {
-  <div class="controlBar">
+<div class="controlBar">
 
-    <div class="schedule-details">
-      <div class="year-section">
-        <span>YEAR:</span>
-        <span> {{ week.year }}</span>
-      </div>
-      <div class="week-section">
-        <span>WEEK:</span>
-        <form 
-          [formGroup]="weekNavigationForm"
-          (ngSubmit)="changeWeek()"
-          class="week-navigation"
-        >
-          <input 
-            type="number"
-            formControlName="weekNumber"
-            class="week-input"
-            min="1"
-            max="53"
-            step="1"
-            inputmode="numeric"
-            autocomplete="off"
-            aria-label="Week number"
-            (blur)="changeWeek()"
-            (keydown.enter)="$event.preventDefault(); changeWeek()"
-          />
-
-          @if (
-            weekNavigationForm.get('weekNumber')?.invalid &&
-            weekNavigationForm.get('weekNumber')?.touched
-          ) {
-            <span class="week-error">1-53</span>
-          }
-        </form>
-      </div>
-      <div class="start-section">
-        <span>START:</span>
-        <span> {{ week.startDate | date: 'MMM dd' | uppercase }}</span>
-      </div>
-      <div class="status-section">
-        <span>STATUS:</span>
-        <span> {{ week.status ?? 'undefined' }} </span>
-      </div>
+  <div class="schedule-details">
+    <div class="year-section">
+      <span>YEAR:</span>
+      <span> {{ week.year }}</span>
     </div>
+    <div class="week-section">
+      <span>WEEK:</span>
+      <form [formGroup]="weekNavigationForm" (ngSubmit)="changeWeek()" class="week-navigation">
+        <input type="number" formControlName="weekNumber" class="week-input" min="1" max="53" step="1"
+          inputmode="numeric" autocomplete="off" aria-label="Week number" (blur)="changeWeek()"
+          (keydown.enter)="$event.preventDefault(); changeWeek()" />
 
-    <div class="action-buttons">
-      <button
-        type="button"
-        class="btn-slide btn-save"
-        (click)="save()"
-        [disabled]="saving()"
-        [class.hide]="viewMode() === 'read'"
-      >
-        @if (saving()) {
-          <span class="btn-save-spinner" aria-hidden="true"></span>
+        @if (
+        weekNavigationForm.get('weekNumber')?.invalid &&
+        weekNavigationForm.get('weekNumber')?.touched
+        ) {
+        <span class="week-error">1-53</span>
         }
-        {{ saving() ? '' : 'SAVE' }}
-      </button>
-      
-      <button
-        type="button"
-        class="btn-slide btn-toggle-view"
-        [disabled]="!isWeekLocked()"
-        (click)="toggleViewMode()"
-      >
-        {{ viewMode() === 'edit' ? 'VIEW' : 'EDIT' }}
-      </button>
-
-      @if (remainingSeconds$ | async; as remainingSeconds) {
-        <div class="expiry-grp">
-          <button type="button" class="btn-slide btn-hide-expiry" (click)="toggleExpiryTimer()">
-            {{ showOrHide === 'hide' ? 'SHOW' : 'HIDE ' }}
-          </button>
-
-          <div class="demo-session-timer" [class.hide]="showOrHide === 'hide'">
-            <span style="cursor: default">{{ remainingSeconds | demoSessionTimer }}</span>
-          </div>
-        </div>
-      }
+      </form>
     </div>
-
+    <div class="start-section">
+      <span>START:</span>
+      <span> {{ week.startDate | date: 'MMM dd' | uppercase }}</span>
+    </div>
+    <div class="status-section">
+      <span>STATUS:</span>
+      <span> {{ week.status ?? 'undefined' }} </span>
+    </div>
   </div>
 
-  <form [formGroup]="weekScheduleForm" (ngSubmit)="save()">
-    <div class="schedule-grid" [class.schedule-grid--loading]="reloading()">
-      <!-- Header row -->
-      <div class="header-cell employee-header">
-        <span>EMPLOYEES</span>
-      </div>
+  <div class="action-buttons">
+    <button type="button" class="btn-slide btn-save" (click)="save()" [disabled]="saving()"
+      [class.hide]="viewMode() === 'read'">
+      @if (saving()) {
+      <span class="btn-save-spinner" aria-hidden="true"></span>
+      }
+      {{ saving() ? '' : 'SAVE' }}
+    </button>
 
-      @for (dayName of dayNames; track $index) {
-        <div class="header-cell specific-date">
-          <span>{{ dayName | slice: 0 : 3 | uppercase }}</span>
-          <span>
-            {{ week.startDate | dayOffset:$index | date: 'dd' }}
-          </span>
+    <button type="button" class="btn-slide btn-toggle-view" [disabled]="!isWeekLocked()" (click)="toggleViewMode()">
+      {{ viewMode() === 'edit' ? 'VIEW' : 'EDIT' }}
+    </button>
+
+    @if (remainingSeconds$ | async; as remainingSeconds) {
+    <div class="expiry-grp">
+      <button type="button" class="btn-slide btn-hide-expiry" (click)="toggleExpiryTimer()">
+        {{ showOrHide === 'hide' ? 'SHOW' : 'HIDE ' }}
+      </button>
+
+      <div class="demo-session-timer" [class.hide]="showOrHide === 'hide'">
+        <span style="cursor: default">{{ remainingSeconds | demoSessionTimer }}</span>
+      </div>
+    </div>
+    }
+  </div>
+
+</div>
+
+<!-- DAYS AND EMPLOYEE CONTAINERS: -->
+<div class="days-container">
+  @for (dayName of dayNames; track $index) {
+  <div class="date-shifts-wrapper">
+
+    <div class="date-header">
+      <span>{{ dayName | slice: 0 : 3 | uppercase }}</span>
+      <span>{{ week.startDate | dayOffset: $index | date: 'dd' }}</span>
+    </div>
+
+    <div class="shifts-container">
+
+      @for (
+        shift of getShiftsForDate(dayDate($index)); 
+        track shift.employeeId + shift.actualDate
+      ) {
+        <div class="employee-container">
+
+          <div class="assigned-employee">
+            <!-- This is where the names of the selected officers will be visible -->
+             <span>{{ employeeName(shift.employeeId) }}</span>
+          </div>
+
+          <button
+            type="button"
+            class="btn-remove-shift"
+            (click)="removeShift(shift)"
+          >
+            x
+          </button>
+
         </div>
       }
+     
+      <button 
+        type="button" 
+        class="btn-add-shift"
+        (click)="openEmployeeModal(dayDate($index))"
+      >
+        ADD SHIFT
+      </button>
 
-      <!-- Employee rows -->
-      <ng-container formArrayName="shiftAssignments">
-        @for (
-          assignment of weekScheduleForm.controls.shiftAssignments.controls;
-          track $index;
-          let employeeIndex = $index
-        ) {
-          <app-schedule-row
-            [assignment]="assignment"
-            [employeeIndex]="employeeIndex"
-            [viewMode]="viewMode()"
-            [popupOnTop]="shouldPopupOnTop(employeeIndex)"
-          />
-        }
-      </ng-container>
     </div>
-  </form>
+  </div>
+  }
+</div>
 }
+
+<!-- MODAL EMPLOYEE SELECTOR WRAPPER -->
+<div class="modal-backdrop" [class.hide]="!employeeModalOpen()" (click)="closeEmployeeModal()">
+  <div class="employee-modal">
+    
+    @if (employeeModalOpen()) {
+    <div class="modal-header">
+      <span>Select employee</span>
+    </div>
+    }
+
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      @if (employeeModalOpen()) {
+        <app-employee-modal 
+          [modalOpen]="employeeModalOpen()"
+          (employeeSelected)="addShift($event)"
+          (modalClosed)="closeEmployeeModal()"
+        />
+      }
+    </div>
+  </div>
+</div>

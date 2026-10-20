@@ -1,6 +1,6 @@
-import { ShiftDTO } from "./ShiftDTO";
+import { SaveShiftDTO } from "./SaveShiftDTO";
 
 export interface ShiftAssignmentDTO {
   employeeId: number;
-  shifts: ShiftDTO[];
+  shifts: SaveShiftDTO [];
 }

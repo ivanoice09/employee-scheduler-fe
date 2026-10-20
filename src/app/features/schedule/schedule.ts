@@ -11,7 +11,8 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
-import { ScheduleRow } from '../../shared/components/schedule-row/schedule-row';
+import { EmployeeModal } from '../../shared/components/employee-modal/employee-modal';
+import { EmployeeDTO } from '../../shared/DTO/GET/EmployeeDTO';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
 import { DemoSessionHelper } from '../../shared/helpers/demo-session-helper';
 import { SchedulePayloadMapper } from '../../shared/mappers/schedule-payload-mapper';
@@ -20,7 +21,9 @@ import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe
 import { ScheduleService } from '../../shared/services/http/schedule-service';
 import { ScheduleFormService, WeekScheduleForm } from '../../shared/services/schedule-form-service';
 import { AlertUtil } from '../../shared/utils/alert-util';
-import { toTime } from '../../shared/utils/date-time-util';
+import { ScheduleRow } from '../../shared/components/schedule-row/schedule-row';
+import { ShiftDTO } from '../../shared/DTO/GET/ShiftDTO';
+import { EmployeeService } from '../../shared/services/http/employee-service';
 
 @Component({
   selector: 'app-schedule',
@@ -33,7 +36,7 @@ import { toTime } from '../../shared/utils/date-time-util';
     UpperCasePipe,
     DemoSessionTimerPipe,
     DayOffsetPipe,
-    ScheduleRow,
+    EmployeeModal,
   ],
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
@@ -46,8 +49,8 @@ export class Schedule implements OnInit, OnDestroy {
   private router = inject(Router);
   private scheduleFormService = inject(ScheduleFormService);
   private schedulePayloadMapper = inject(SchedulePayloadMapper);
+  private employeeService = inject(EmployeeService);
 
-  week = signal<WeekDTO | null>(null);
   viewMode = signal<'edit' | 'read'>('edit');
   reloading = signal(false);
   saving = signal(false);
@@ -67,6 +70,11 @@ export class Schedule implements OnInit, OnDestroy {
   remainingSeconds$ = this.demoSessionHelper.remainingSeconds$;
 
   ngOnInit(): void {
+
+    this.employeeService
+    .getEmployeesSaveInCache()
+    .subscribe((employees) => this.employees.set(employees));
+
     this.route.paramMap
       .pipe(
         switchMap((params) => {
@@ -218,6 +226,74 @@ export class Schedule implements OnInit, OnDestroy {
 
   toggleExpiryTimer() {
     this.showOrHide = this.showOrHide === 'show' ? 'hide' : 'show';
+  }
+
+  // ==========================================================
+  //                MODERN UI SETTINGS HERE!!!
+  // ==========================================================
+
+  week = signal<WeekDTO | null>(null);
+  shifts = signal<ShiftDTO[]>([]);
+  employees = signal<EmployeeDTO[]>([]);
+  selectedDate = signal<string | null>(null);
+  employeeModalOpen = signal(false);
+
+  openEmployeeModal(date: string) {
+    this.selectedDate.set(date);
+    this.employeeModalOpen.set(true);
+  }
+
+  closeEmployeeModal() {
+    this.employeeModalOpen.set(false);
+    this.selectedDate.set(null);
+  }
+
+  addShift(employee: EmployeeDTO) {
+    const date = this.selectedDate();
+
+    if (!date || !employee) {
+      return;
+    }
+
+    const newShift: ShiftDTO = {
+      employeeId: employee.employeeId,
+      actualDate: date,
+      startsAt: null,
+      endsAt: null,
+    }
+
+    this.shifts.update((current) => [...current, newShift]);
+    this.closeEmployeeModal();
+  }
+
+  removeShift(shift: ShiftDTO) {
+    this.shifts.update((current) => 
+      current.filter((s) => s !== shift)
+    );
+  }
+
+  getShiftsForDate(date: string): ShiftDTO[] {
+    return this.shifts().filter((shift) => shift.actualDate === date);
+  }
+
+  dayDate(index: number): string {
+    const week = this.week();
+    if (!week) return '';
+
+    const date = new Date(week.startDate);
+    date.setDate(date.getDate() + index);
+
+    return date.toISOString().slice(0, 10);
+  }
+
+  employeeName(employeeId: number): string {
+    const employee = this.employees().find(
+      (e) => e.employeeId === employeeId
+    );
+
+    return employee
+      ? `${employee.firstName} ${employee.lastName}`.trim()
+      : 'Unknown employee';
   }
 }
 

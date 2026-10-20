@@ -29,7 +29,7 @@ export type ScheduleViewMode = 'edit' | 'read';
   },
 })
 export class ScheduleRow {
-  private readonly timePickerCoordinator = inject(TimePickerCoordinator);
+  // private readonly timePickerCoordinator = inject(TimePickerCoordinator);
 
   readonly assignment = input.required<FormGroup<EmployeeScheduleForm>>();
   readonly employeeIndex = input.required<number>();

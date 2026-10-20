@@ -1,0 +1,24 @@
+<div class="modal-body">
+    @if (employees(); as employees) {
+        @if (employees.length === 0) {
+            <div class="empty-state">
+                <span>No employees found</span>
+            </div>
+        } @else {
+            <div class="employees-list">
+                @for (employee of employees; track employee.employeeId) {
+                    <div class="employee-item" (click)="selectEmployee(employee)">
+                        <div class="employee-name">
+                            <span>{{ employee.firstName }}</span>
+                            <span>{{ employee.lastName }}</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    } @else {
+        <div class="spinner">
+            <span>Loading...</span>
+        </div>
+    }
+</div>
