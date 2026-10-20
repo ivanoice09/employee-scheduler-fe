@@ -98,38 +98,38 @@
   }
 }
 
-
-
 /* ================ */
 /* MODERN UI STYLES */
 /* ================ */
 
-.days-container {
-  display: flex;
-  justify-content: center;
-  gap: 30px;
+.days-swiper {
+  width: 100%;
+  padding-bottom: 12px;
+  align-items: flex-start;
 }
 
 .date-shifts-wrapper {
   display: block;
+  height: auto;
+  box-sizing: border-box;
   border: 1px solid black;
   border-radius: 8px;
   padding: 7px;
-
   background-color: #707070;
 }
 
 .date-header {
   display: flex;
   justify-content: center;
-  width: 200px;
+  width: 100%;
   gap: 10px;
   padding: 8px;
   border: 1px solid black;
   background-color: white;
+  box-sizing: border-box;
 }
 
-.shifts-container{
+.shifts-container {
   display: flex;
   flex-direction: column;
   margin-top: 10px;
@@ -150,6 +150,11 @@
   border-radius: 8px;
   background-color: green;
   color: white;
+}
+
+.day-swiper swiper-slide {
+  height: auto;
+  align-self: flex-start;
 }
 
 /* ============== */

@@ -1,5 +1,5 @@
 import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -11,6 +11,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
+import { register } from 'swiper/element';
 import { EmployeeModal } from '../../shared/components/employee-modal/employee-modal';
 import { EmployeeDTO } from '../../shared/DTO/GET/EmployeeDTO';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
@@ -18,13 +19,10 @@ import { DemoSessionHelper } from '../../shared/helpers/demo-session-helper';
 import { SchedulePayloadMapper } from '../../shared/mappers/schedule-payload-mapper';
 import { DayOffsetPipe } from '../../shared/pipes/day-offset-pipe';
 import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
+import { EmployeeService } from '../../shared/services/http/employee-service';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
 import { ScheduleFormService, ShiftForm, WeekScheduleForm } from '../../shared/services/schedule-form-service';
 import { AlertUtil } from '../../shared/utils/alert-util';
-import { ScheduleRow } from '../../shared/components/schedule-row/schedule-row';
-import { ShiftDTO } from '../../shared/DTO/GET/ShiftDTO';
-import { EmployeeService } from '../../shared/services/http/employee-service';
-import { TimePicker } from '../../shared/components/time-picker/time-picker';
 
 export interface CalendarShift {
   employeeId: number;
@@ -32,6 +30,8 @@ export interface CalendarShift {
   actualDate: string;
   form: FormGroup<ShiftForm>;
 }
+
+register();
 
 @Component({
   selector: 'app-schedule',
@@ -44,8 +44,9 @@ export interface CalendarShift {
     UpperCasePipe,
     DemoSessionTimerPipe,
     DayOffsetPipe,
-    EmployeeModal
+    EmployeeModal,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
 })
