@@ -7,7 +7,6 @@ import {
   inject,
   input,
   model,
-  output,
   signal,
 } from '@angular/core';
 import { TimePickerCoordinator } from '../../helpers/time-picker-coordinator';
@@ -29,10 +28,6 @@ export type TimeFieldType = 'hour' | 'minute';
       multi: true,
     },
   ],
-  host: {
-    '(focusin)': 'focusin.emit($event)',
-    '(focusout)': 'focusout.emit($event)',
-  },
 })
 export class TimePicker implements ControlValueAccessor {
   private readonly coordinator = inject(TimePickerCoordinator);
@@ -55,11 +50,6 @@ export class TimePicker implements ControlValueAccessor {
   private onTouched: () => void = () => {};
 
   readonly popupOnTop = input(false);
-
-  output = output<FocusEvent>();
-
-  focusin = output<FocusEvent>();
-  focusout = output<FocusEvent>();
 
   constructor() {
     effect(() => {

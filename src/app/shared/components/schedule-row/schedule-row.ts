@@ -8,7 +8,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TimePickerCoordinator } from '../../helpers/time-picker-coordinator';
 import { ShiftTextPipe } from '../../pipes/shift-text-pipe';
 import { EmployeeScheduleForm } from '../../services/schedule-form-service';
@@ -26,7 +26,6 @@ export type ScheduleViewMode = 'edit' | 'read';
   host: {
     '[class.row-selected]': 'isSelected()',
     '(focusin)': 'onRowFocus($event)',
-    '(document:focusin)': 'onDocumentFocus($event)',
   },
 })
 export class ScheduleRow {
@@ -37,9 +36,14 @@ export class ScheduleRow {
   readonly viewMode = input.required<ScheduleViewMode>();
   readonly popupOnTop = input.required<boolean>();
 
-  readonly dayIndexes = Array.from({ length: 7 }, (_, index) => index);
+  readonly timeFields = [
+    { key: 'startHour', type: 'hour' },
+    { key: 'startMinute', type: 'minute' },
+    { key: 'endHour', type: 'hour' },
+    { key: 'endMinute', type: 'minute' },
+  ] as const;
 
-  private readonly visibleMinutes = signal<ReadonlySet<string>>(new Set());
+  readonly dayIndexes = Array.from({ length: 7 }, (_, index) => index);
 
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly document = inject(DOCUMENT);
@@ -77,88 +81,6 @@ export class ScheduleRow {
     });
   }
 
-  closePickers(): void {
-    this.timePickerCoordinator.closeAll();
-  }
-
-  get employeeName(): string {
-    return this.assignment()?.get('employeeName')?.value ?? '';
-  }
-
-  get shifts(): FormArray {
-    return this.assignment()?.get('shifts') as FormArray;
-  }
-
-  isMinuteVisible(
-    shift: FormGroup,
-    dayIndex: number,
-    minuteField: 'startMinute' | 'endMinute',
-  ): boolean {
-    const key = this.minuteKey(dayIndex, minuteField);
-
-    if (this.visibleMinutes().has(key)) {
-      return true;
-    }
-
-    return this.hasCustomMinute(shift, minuteField);
-  }
-
-  onTimeFocusIn(
-    event: FocusEvent,
-    shift: FormGroup,
-    dayIndex: number,
-    field: 'startHour' | 'startMinute' | 'endHour' | 'endMinute',
-  ): void {
-    const minuteField =
-      field === 'startHour' ? 'startMinute' : field === 'endHour' ? 'endMinute' : field;
-
-    this.showMinute(dayIndex, minuteField);
-  }
-
-  onTimeFocusOut(
-    event: FocusEvent,
-    shift: FormGroup,
-    dayIndex: number,
-    field: 'startHour' | 'startMinute' | 'endHour' | 'endMinute',
-  ): void {
-    const minuteField =
-      field === 'startHour' ? 'startMinute' : field === 'endHour' ? 'endMinute' : field;
-
-    // Keep the minute input visible if focus is moving directly into it.
-    const relatedTarget = event.relatedTarget;
-
-    if (
-      relatedTarget instanceof Element &&
-      relatedTarget.closest('[data-time-field]')?.getAttribute('data-time-field') === minuteField
-    ) {
-      return;
-    }
-
-    if (!this.hasCustomMinute(shift, minuteField)) {
-      this.hideMinute(dayIndex, minuteField);
-    }
-  }
-
-  private showMinute(dayIndex: number, minuteField: 'startMinute' | 'endMinute'): void {
-    const key = this.minuteKey(dayIndex, minuteField);
-
-    this.visibleMinutes.update((current) => new Set(current).add(key));
-  }
-
-  private hideMinute(dayIndex: number, minuteField: 'startMinute' | 'endMinute'): void {
-    const key = this.minuteKey(dayIndex, minuteField);
-
-    this.visibleMinutes.update((current) => {
-      const next = new Set(current);
-      next.delete(key);
-      return next;
-    });
-  }
-
-  private minuteKey(dayIndex: number, minuteField: 'startMinute' | 'endMinute'): string {
-    return `${this.employeeIndex()}-${dayIndex}-${minuteField}`;
-  }
-
   // Row selection logic
 
   readonly isSelected = signal(false);
@@ -181,31 +103,5 @@ export class ScheduleRow {
     if (focusedRow && focusedRow !== this.hostElement.nativeElement) {
       this.isSelected.set(false);
     }
-  }
-
-  private hasCustomMinute(shift: FormGroup, minuteField: 'startMinute' | 'endMinute'): boolean {
-    const hourField = minuteField === 'startMinute' ? 'startHour' : 'endHour';
-
-    const hourValue = shift.get(hourField)?.value;
-    const minuteValue = shift.get(minuteField)?.value;
-
-    const hasHour = hourValue !== null && hourValue !== undefined && hourValue !== '';
-    const hasCustomMinute =
-      minuteValue !== null &&
-      minuteValue !== undefined &&
-      minuteValue !== '' &&
-      minuteValue !== '00';
-
-    return hasHour && hasCustomMinute;
-  }
-
-  onHourPointDown(
-    event: PointerEvent, 
-    dayIndex: number,
-    field: 'startHour' | 'endHour'
-  ) {
-    const minuteField = field === 'startHour' ? 'startMinute' : 'endMinute';
-
-    this.showMinute(dayIndex, minuteField);
   }
 }

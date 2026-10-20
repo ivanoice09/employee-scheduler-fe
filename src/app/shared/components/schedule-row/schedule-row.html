@@ -10,39 +10,20 @@ let dayIndex = $index
 <div class="shift-cell">
   @if (viewMode() === 'edit') {
   <div [formGroup]="shift" class="shift-editor">
-    <div class="time-group" data-time-field="startHour">
-      <app-time-picker [pickerId]="employeeIndex() + '-' + dayIndex + '-startHour'" type="hour"
-        [popupOnTop]="popupOnTop()" formControlName="startHour" (focusin)="onTimeFocusIn($event, shift, dayIndex, 'startHour')"
-        (focusout)="onTimeFocusOut($event, shift, dayIndex, 'startHour')" />
+    @for (field of timeFields; track field.key; let i = $index) {
+          <app-time-picker
+            [pickerId]="employeeIndex() + '-' + dayIndex + '-' + field.key"
+            [type]="field.type"
+            [popupOnTop]="popupOnTop()"
+            [formControlName]="field.key"
+          />
 
-      <div class="minute-group" data-time-field="startMinute"
-        [class.minute-group--hidden]="!isMinuteVisible(shift, dayIndex, 'startMinute')">
-        <span>:</span>
-
-        <app-time-picker [pickerId]="employeeIndex() + '-' + dayIndex + '-startMinute'" type="minute"
-          [popupOnTop]="popupOnTop()" formControlName="startMinute"
-          (focusin)="onTimeFocusIn($event, shift, dayIndex, 'startMinute')"
-          (focusout)="onTimeFocusOut($event, shift, dayIndex, 'startMinute')" />
-      </div>
-    </div>
-
-    <span>-</span>
-
-    <div class="time-group" data-time-field="endHour">
-      <app-time-picker [pickerId]="employeeIndex() + '-' + dayIndex + '-endHour'" type="hour"
-        [popupOnTop]="popupOnTop()" formControlName="endHour" (focusin)="onTimeFocusIn($event, shift, dayIndex, 'endHour')"
-        (focusout)="onTimeFocusOut($event, shift, dayIndex, 'endHour')" />
-
-      <div class="minute-group" data-time-field="endMinute"
-        [class.minute-group--hidden]="!isMinuteVisible(shift, dayIndex, 'endMinute')">
-        <span>:</span>
-
-        <app-time-picker [pickerId]="employeeIndex() + '-' + dayIndex + '-endMinute'" type="minute"
-          [popupOnTop]="popupOnTop()" formControlName="endMinute"
-          (focusin)="onTimeFocusIn($event, shift, dayIndex, 'endMinute')"
-          (focusout)="onTimeFocusOut($event, shift, dayIndex, 'endMinute')" />
-      </div>
-    </div>
+          @if (i === 0 || i === 2) {
+            <span>:</span>
+          } @else if (i === 1) {
+            <span>-</span>
+          }
+        }
   </div>
   } @else {
   <span class="shift-text">
