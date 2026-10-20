@@ -28,6 +28,16 @@ export interface WeekScheduleForm {
 export class ScheduleFormService {
   private fb = inject(NonNullableFormBuilder);
 
+  createShiftForm(actualDate: string): FormGroup<ShiftForm> {
+    return this.fb.group({
+      actualDate: this.fb.control(actualDate),
+      startHour: this.fb.control(''),
+      startMinute: this.fb.control(''),
+      endHour: this.fb.control(''),
+      endMinute: this.fb.control(''),
+    });
+  }
+
   buildWeekForm(week: WeekDTO): FormGroup<WeekScheduleForm> {
     return this.fb.group({
       year: this.fb.control(week.year),
@@ -74,5 +84,4 @@ export class ScheduleFormService {
       endMinute: this.fb.control(end.minute),
     });
   }
-
 }

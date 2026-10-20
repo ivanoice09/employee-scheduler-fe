@@ -19,11 +19,19 @@ import { SchedulePayloadMapper } from '../../shared/mappers/schedule-payload-map
 import { DayOffsetPipe } from '../../shared/pipes/day-offset-pipe';
 import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
-import { ScheduleFormService, WeekScheduleForm } from '../../shared/services/schedule-form-service';
+import { ScheduleFormService, ShiftForm, WeekScheduleForm } from '../../shared/services/schedule-form-service';
 import { AlertUtil } from '../../shared/utils/alert-util';
 import { ScheduleRow } from '../../shared/components/schedule-row/schedule-row';
 import { ShiftDTO } from '../../shared/DTO/GET/ShiftDTO';
 import { EmployeeService } from '../../shared/services/http/employee-service';
+import { TimePicker } from '../../shared/components/time-picker/time-picker';
+
+export interface CalendarShift {
+  employeeId: number;
+  employeeName: string;
+  actualDate: string;
+  form: FormGroup<ShiftForm>;
+}
 
 @Component({
   selector: 'app-schedule',
@@ -36,7 +44,7 @@ import { EmployeeService } from '../../shared/services/http/employee-service';
     UpperCasePipe,
     DemoSessionTimerPipe,
     DayOffsetPipe,
-    EmployeeModal,
+    EmployeeModal
   ],
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
@@ -185,7 +193,11 @@ export class Schedule implements OnInit, OnDestroy {
   save(): void {
     const raw = this.weekScheduleForm.getRawValue();
 
-    const payload = this.schedulePayloadMapper.toSaveWeekDto(raw, this.currentWeekStartDate);
+    const payload = this.schedulePayloadMapper.toSaveWeekDtoFromCalendar(
+      raw, 
+      this.currentWeekStartDate,
+      this.shifts(),
+    );
 
     this.saving.set(true);
 
@@ -233,7 +245,7 @@ export class Schedule implements OnInit, OnDestroy {
   // ==========================================================
 
   week = signal<WeekDTO | null>(null);
-  shifts = signal<ShiftDTO[]>([]);
+  shifts = signal<CalendarShift[]>([]);
   employees = signal<EmployeeDTO[]>([]);
   selectedDate = signal<string | null>(null);
   employeeModalOpen = signal(false);
@@ -255,25 +267,29 @@ export class Schedule implements OnInit, OnDestroy {
       return;
     }
 
-    const newShift: ShiftDTO = {
+    const shiftForm = this.scheduleFormService.createShiftForm(date);
+
+    const newShift: CalendarShift = {
       employeeId: employee.employeeId,
+      employeeName: `${employee.firstName} ${employee.lastName}`.trim(),
       actualDate: date,
-      startsAt: null,
-      endsAt: null,
+      form: shiftForm,
     }
 
     this.shifts.update((current) => [...current, newShift]);
     this.closeEmployeeModal();
   }
 
-  removeShift(shift: ShiftDTO) {
-    this.shifts.update((current) => 
-      current.filter((s) => s !== shift)
+  getShiftsForDate(date: string): CalendarShift[] {
+    return this.shifts().filter(
+      (shift) => shift.actualDate === date
     );
   }
 
-  getShiftsForDate(date: string): ShiftDTO[] {
-    return this.shifts().filter((shift) => shift.actualDate === date);
+  removeShift(shift: CalendarShift) {
+    this.shifts.update((current) => 
+      current.filter((currentShift) => currentShift !== shift)
+    );
   }
 
   dayDate(index: number): string {

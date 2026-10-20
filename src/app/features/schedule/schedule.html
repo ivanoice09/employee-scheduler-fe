@@ -73,13 +73,53 @@
 
       @for (
         shift of getShiftsForDate(dayDate($index)); 
-        track shift.employeeId + shift.actualDate
+        track shift.employeeId + '-' + shift.actualDate + '-' + $index
       ) {
         <div class="employee-container">
 
           <div class="assigned-employee">
             <!-- This is where the names of the selected officers will be visible -->
-             <span>{{ employeeName(shift.employeeId) }}</span>
+             <span>{{ shift.employeeName }}</span>
+
+             <div class="shift-time-inputs" [formGroup]="shift.form">
+                <input
+                  type="number"
+                  min="0"
+                  max="23"
+                  placeholder="HH"
+                  formControlName="startHour"
+                />
+
+                <span>:</span>
+
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  placeholder="MM"
+                  formControlName="startMinute"
+                />
+
+                <span>–</span>
+
+                <input
+                  type="number"
+                  min="0"
+                  max="23"
+                  placeholder="HH"
+                  formControlName="endHour"
+                />
+
+                <span>:</span>
+
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  placeholder="MM"
+                  formControlName="endMinute"
+                />
+             </div>
           </div>
 
           <button

@@ -1,61 +1,65 @@
 import { Service } from '@angular/core';
-import { SaveWeekDTO } from '../DTO/POST/SaveWeekDTO ';
 import { FormGroup } from '@angular/forms';
-import { EmployeeScheduleForm, WeekScheduleForm } from '../services/schedule-form-service';
-import { toTime } from '../utils/date-time-util';
-import { ShiftAssignmentDTO } from '../DTO/POST/ShiftAssignmentDTO ';
+import { CalendarShift } from '../../features/schedule/schedule';
 import { SaveShiftDTO } from '../DTO/POST/SaveShiftDTO';
+import { SaveWeekDTO } from '../DTO/POST/SaveWeekDTO ';
+import { ShiftAssignmentDTO } from '../DTO/POST/ShiftAssignmentDTO ';
+import { WeekScheduleForm } from '../services/schedule-form-service';
+import { toTime } from '../utils/date-time-util';
 
 type WeekScheduleFormValue = ReturnType<
     FormGroup<WeekScheduleForm>['getRawValue']
 >;
 
-type EmployeeScheduleFormValue = ReturnType<
-    FormGroup<EmployeeScheduleForm>['getRawValue']
->;
-
 @Service()
 export class SchedulePayloadMapper {
 
-  toSaveWeekDto(
-      formValue: WeekScheduleFormValue,
-      weekStartDate: string,
+  toSaveWeekDtoFromCalendar(
+    formValue: WeekScheduleFormValue,
+    weekStartDate: string,
+    calendarShifts: CalendarShift[],
   ): SaveWeekDTO {
-      return {
-          year: formValue.year,
-          weekNumber: formValue.weekNumber,
-          weekStartDate,
-          assignments: formValue.shiftAssignments.map((assignment) =>
-              this.toAssignmentDto(assignment),
-          ),
-      };
-  }
-
-  private toAssignmentDto(
-    assignment: EmployeeScheduleFormValue,
-  ): ShiftAssignmentDTO {
     return {
-      employeeId: assignment.employeeId,
-      shifts: assignment.shifts
-        .map((shift) => this.toShiftDto(shift))
-        .filter((shift): shift is SaveShiftDTO => shift !== null),
+      year: formValue.year,
+      weekNumber: formValue.weekNumber,
+      weekStartDate,
+      assignments: this.toAssignmentDtos(calendarShifts),
     };
   }
 
-  private toShiftDto(
-    shift: EmployeeScheduleFormValue['shifts'][number],
-  ): SaveShiftDTO | null {
-    const startsAt = toTime(shift.startHour, shift.startMinute);
-    const endsAt = toTime(shift.endHour, shift.endMinute);
+  private toAssignmentDtos(
+    calendarShifts: CalendarShift[],
+  ): ShiftAssignmentDTO[] {
+    const grouped = new Map<number, SaveShiftDTO[]>();
 
-    if (!startsAt || !endsAt) {
-      return null;
+    for (const shift of calendarShifts) {
+      const value = shift.form.getRawValue();
+
+      const startsAt = toTime(value.startHour, value.startMinute);
+      const endsAt = toTime(value.endHour, value.endMinute);
+
+      if (!startsAt || !endsAt) {
+        continue;
+      }
+
+      const savedShift: SaveShiftDTO = {
+        actualDate: value.actualDate,
+        startsAt,
+        endsAt,
+      };
+
+      const existing = grouped.get(shift.employeeId) ?? [];
+      existing.push(savedShift);
+
+      grouped.set(shift.employeeId, existing);
     }
 
-    return {
-      actualDate: shift.actualDate,
-      startsAt,
-      endsAt,
-    };
+    return Array.from(grouped.entries()).map(
+      ([employeeId, shifts]) => ({
+        employeeId,
+        shifts,
+      })
+    );
   }
+  
 }

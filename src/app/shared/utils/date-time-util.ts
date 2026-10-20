@@ -17,13 +17,39 @@ export function splitTime(time: string | null) {
   return { hour, minute };
 }
 
-export function toTime(hour: string, minute: string): string | null {
-  if (!/^\d{1,2}$/.test(hour) || !/^\d{1,2}$/.test(minute)) return null;
+export function toTime(
+  hour: string | number | null | undefined,
+  minute: string | number | null | undefined,
+): string | null {
+  const normalizedHour = normalizeTimePart(hour, 23);
+  const normalizedMinute = normalizeTimePart(minute, 59);
 
-  const h = Number(hour);
-  const m = Number(minute);
+  if (normalizedHour === null || normalizedMinute === null) {
+    return null;
+  }
 
-  if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+  return `${normalizedHour.padStart(2, '0')}:${normalizedMinute.padStart(2, '0')}`;
+}
 
-  return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+function normalizeTimePart(
+  value: string | number | null | undefined,
+  max: number,
+): string | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  if (Number.isNaN(numericValue)) {
+    return null;
+  }
+
+  const integer = Math.trunc(numericValue);
+
+  if (integer < 0 || integer > max) {
+    return null;
+  }
+
+  return String(integer);
 }
