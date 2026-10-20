@@ -156,29 +156,6 @@ export class Schedule implements OnInit, OnDestroy {
   }
 
   /**
-   * Returns the shift-assignments from the week schedule's form (FormArray)
-   */
-  get shiftAssignmentsFormArray(): FormArray {
-    return this.weekScheduleForm.get('shiftAssignments') as FormArray;
-  }
-
-  /**
-   * Get all shifts from the FormArry by passing an employee's index number.
-   */
-  getShiftsByEmployeeIndex(employeeIndex: number): FormArray {
-    return this.shiftAssignmentsFormArray.at(employeeIndex).get('shifts') as FormArray;
-  }
-
-  /**
-   * Get all shifts directly from the FormArray.
-   * This is an optimization of the function above because it avoids
-   * resolving the employee again by index.
-   */
-  shiftsOf(shiftAssignment: AbstractControl): FormArray {
-    return shiftAssignment.get('shifts') as FormArray;
-  }
-
-  /**
    * Returns TRUE when week.status is not null.
    * So if the status is DRAFT, PUBLISHED, or LOCKED return TRUE.
    * If TRUE then the view toggler button is ENABLED.
@@ -195,34 +172,6 @@ export class Schedule implements OnInit, OnDestroy {
     }
 
     this.viewMode.set(this.viewMode() === 'edit' ? 'read' : 'edit');
-  }
-
-  /**
-   * After getting startHour, startMinute, endHour and endMinute
-   * converts them into string and joints them into (startHour, startMinute) as one
-   * and (endHour, endMinute) as one and returns TWO string values (startsAt, endsAt)
-   */
-  getShiftForCell(
-    employeeIndex: number,
-    dayIndex: number,
-  ): { startsAt: string | null; endsAt: string | null } | null {
-    const shifts = this.getShiftsByEmployeeIndex(employeeIndex);
-    const shiftGroup = shifts.at(dayIndex) as FormGroup;
-
-    const startHour = shiftGroup.get('startHour')?.value as string;
-    const startMinute = shiftGroup.get('startMinute')?.value as string;
-
-    const endHour = shiftGroup.get('endHour')?.value as string;
-    const endMinute = shiftGroup.get('endMinute')?.value as string;
-
-    const startsAt = toTime(startHour, startMinute);
-    const endsAt = toTime(endHour, endMinute);
-
-    if (!startsAt || !endsAt) {
-      return null;
-    }
-
-    return { startsAt, endsAt };
   }
 
   save(): void {
@@ -255,6 +204,10 @@ export class Schedule implements OnInit, OnDestroy {
   shouldPopupOnTop(employeeIndex: number): boolean {
     const total = this.shiftAssignmentsFormArray.controls.length;
     return total - employeeIndex <= 4;
+  }
+
+  get shiftAssignmentsFormArray(): FormArray {
+    return this.weekScheduleForm.get('shiftAssignments') as FormArray;
   }
 
   // =====================

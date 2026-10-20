@@ -198,4 +198,14 @@ export class ScheduleRow {
 
     return hasHour && hasCustomMinute;
   }
+
+  onHourPointDown(
+    event: PointerEvent, 
+    dayIndex: number,
+    field: 'startHour' | 'endHour'
+  ) {
+    const minuteField = field === 'startHour' ? 'startMinute' : 'endMinute';
+
+    this.showMinute(dayIndex, minuteField);
+  }
 }
