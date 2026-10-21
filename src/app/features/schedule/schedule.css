@@ -9,16 +9,9 @@
 }
 
 .week-input {
-  width: 3.5rem;
-  padding: 0.15rem 0.35rem;
   border: 1px solid transparent;
   border-radius: 4px;
   text-align: center;
-  transition: border-color 0.3s ease;
-}
-
-.week-input:hover {
-  border-color: #ccc;
 }
 
 .week-input.ng-invalid.ng-touched {
@@ -39,9 +32,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid #707070;
+  background-color: #CED3DC;
+  border-radius: 8px;
   padding: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .year-section,
@@ -65,10 +59,9 @@
 }
 
 .btn-save,
-.btn-toggle-view,
-.btn-hide-expiry {
+.btn-toggle-view {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #707070;
+  border-radius: 8px;
 }
 
 .btn-save {
@@ -90,6 +83,14 @@
   border-top-color: transparent;
   border-radius: 50%;
   animation: btn-spin 0.7s linear infinite;
+}
+
+.btn-hide-expiry {
+  border-radius: 8px 0 0 8px;
+}
+
+.btn-hide-expiry.clicked {
+  border-radius: 8px;
 }
 
 @keyframes btn-spin {
@@ -114,7 +115,7 @@
   box-sizing: border-box;
   border-radius: 8px;
   padding: 7px;
-  background-color: #707070;
+  background-color: #CED3DC;
   box-shadow: 0 10px 10px rgba(193, 193, 193, 0.2);
 }
 
@@ -193,7 +194,11 @@
 .btn-add-shift {
   border-radius: 8px;
   background-color: green;
+}
+
+.btn-add-shift i {
   color: white;
+  font-size: 20px;
 }
 
 .day-swiper swiper-slide {

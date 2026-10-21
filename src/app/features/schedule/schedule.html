@@ -9,13 +9,22 @@
     <div class="week-section">
       <span>WEEK:</span>
       <form [formGroup]="weekNavigationForm" (ngSubmit)="changeWeek()" class="week-navigation">
-        <input type="number" formControlName="weekNumber" class="week-input" min="1" max="53" step="1"
-          inputmode="numeric" autocomplete="off" aria-label="Week number" (blur)="changeWeek()"
-          (keydown.enter)="$event.preventDefault(); changeWeek()" />
-
+        <input 
+          type="number" 
+          formControlName="weekNumber" 
+          class="week-input" 
+          min="1" 
+          max="53" 
+          step="1"
+          inputmode="numeric" 
+          autocomplete="off" 
+          aria-label="Week number" 
+          (blur)="changeWeek()"
+          (keydown.enter)="$event.preventDefault(); changeWeek()" 
+        />
         @if (
-        weekNavigationForm.get('weekNumber')?.invalid &&
-        weekNavigationForm.get('weekNumber')?.touched
+          weekNavigationForm.get('weekNumber')?.invalid &&
+          weekNavigationForm.get('weekNumber')?.touched
         ) {
         <span class="week-error">1-53</span>
         }
@@ -32,25 +41,40 @@
   </div>
 
   <div class="action-buttons">
-    <button type="button" class="btn-slide btn-save" (click)="save()" [disabled]="saving()"
-      [class.hide]="viewMode() === 'read'">
+    <button 
+      type="button" 
+      class="btn-save" 
+      (click)="save()" 
+      [disabled]="saving()"
+      [class.hide]="viewMode() === 'read'"
+    >
       @if (saving()) {
       <span class="btn-save-spinner" aria-hidden="true"></span>
       }
       {{ saving() ? '' : 'SAVE' }}
     </button>
 
-    <button type="button" class="btn-slide btn-toggle-view" [disabled]="!isWeekLocked()" (click)="toggleViewMode()">
+    <button 
+      type="button" 
+      class="btn-slide btn-toggle-view" 
+      [disabled]="!isWeekLocked()" 
+      (click)="toggleViewMode()"
+    >
       {{ viewMode() === 'edit' ? 'VIEW' : 'EDIT' }}
     </button>
 
     @if (remainingSeconds$ | async; as remainingSeconds) {
     <div class="expiry-grp">
-      <button type="button" class="btn-slide btn-hide-expiry" (click)="toggleExpiryTimer()">
-        {{ showOrHide === 'hide' ? 'SHOW' : 'HIDE ' }}
+      <button 
+        type="button" 
+        class="btn-hide-expiry"
+        [class.clicked]="isExpiryHidden()" 
+        (click)="toggleExpiry()"
+      >
+        {{ isExpiryHidden() ? 'SHOW' : 'HIDE ' }}
       </button>
 
-      <div class="demo-session-timer" [class.hide]="showOrHide === 'hide'">
+      <div class="demo-session-timer" [class.hide]="isExpiryHidden()">
         <span style="cursor: default">{{ remainingSeconds | demoSessionTimer }}</span>
       </div>
     </div>
@@ -142,7 +166,7 @@
         class="btn-add-shift"
         (click)="openEmployeeModal(dayDate($index))"
       >
-        ADD SHIFT
+        <i class="bi bi-plus"></i>
       </button>
 
     </div>

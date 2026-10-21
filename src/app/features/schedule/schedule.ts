@@ -275,6 +275,7 @@ export class Schedule implements OnInit, OnDestroy {
   employees = signal<EmployeeDTO[]>([]);
   selectedDate = signal<string | null>(null);
   employeeModalOpen = signal(false);
+  isExpiryHidden = signal(false);
 
   openEmployeeModal(date: string) {
     this.selectedDate.set(date);
@@ -367,6 +368,10 @@ export class Schedule implements OnInit, OnDestroy {
       actualDate: shift.actualDate,
       form,
     };
+  }
+
+  toggleExpiry() {
+    this.isExpiryHidden.update(value => !value);
   }
 }
 
