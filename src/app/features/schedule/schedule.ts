@@ -1,5 +1,13 @@
 import { AsyncPipe, DatePipe, UpperCasePipe } from '@angular/common';
-import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  CUSTOM_ELEMENTS_SCHEMA,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -13,6 +21,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
 import { register } from 'swiper/element';
 import { EmployeeModal } from '../../shared/components/employee-modal/employee-modal';
+import { TimePicker } from '../../shared/components/time-picker/time-picker';
+import { CalendarShift } from '../../shared/DTO/GET/CalendarShift';
 import { EmployeeDTO } from '../../shared/DTO/GET/EmployeeDTO';
 import { WeekDTO } from '../../shared/DTO/GET/WeekDTO';
 import { DemoSessionHelper } from '../../shared/helpers/demo-session-helper';
@@ -21,16 +31,9 @@ import { DayOffsetPipe } from '../../shared/pipes/day-offset-pipe';
 import { DemoSessionTimerPipe } from '../../shared/pipes/demo-session-timer-pipe';
 import { EmployeeService } from '../../shared/services/http/employee-service';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
-import { ScheduleFormService, ShiftForm, WeekScheduleForm } from '../../shared/services/schedule-form-service';
+import { ScheduleFormService, WeekScheduleForm } from '../../shared/services/schedule-form-service';
 import { AlertUtil } from '../../shared/utils/alert-util';
-import { TimePicker } from '../../shared/components/time-picker/time-picker';
-
-export interface CalendarShift {
-  employeeId: number;
-  employeeName: string;
-  actualDate: string;
-  form: FormGroup<ShiftForm>;
-}
+import { ShiftDTO } from '../../shared/DTO/GET/ShiftDTO';
 
 register();
 
@@ -80,10 +83,9 @@ export class Schedule implements OnInit, OnDestroy {
   remainingSeconds$ = this.demoSessionHelper.remainingSeconds$;
 
   ngOnInit(): void {
-
     this.employeeService
-    .getEmployeesSaveInCache()
-    .subscribe((employees) => this.employees.set(employees));
+      .getEmployeesSaveInCache()
+      .subscribe((employees) => this.employees.set(employees));
 
     this.route.paramMap
       .pipe(
@@ -118,6 +120,28 @@ export class Schedule implements OnInit, OnDestroy {
     });
 
     this.weekScheduleForm = this.scheduleFormService.buildWeekForm(week);
+
+    const employeesById = new Map(
+      week.employees.map((employee) => [
+        employee.employeeId,
+        `${employee.firstName} ${employee.lastName}`.trim(),
+      ]),
+    );
+
+    const calendarShifts = week.assignments.flatMap((assignment) => {
+      const employeeName = 
+        employeesById.get(assignment.employeeId) ?? 'Unknown employee';
+
+      return assignment.shifts.map((shift) =>
+        this.toCalendarShift(
+          assignment.employeeId, 
+          employeeName, 
+          shift
+        ),
+      );
+    });
+
+    this.shifts.set(calendarShifts);
   }
 
   private reloadCurrentWeek(): void {
@@ -196,7 +220,7 @@ export class Schedule implements OnInit, OnDestroy {
     const raw = this.weekScheduleForm.getRawValue();
 
     const payload = this.schedulePayloadMapper.toSaveWeekDtoFromCalendar(
-      raw, 
+      raw,
       this.currentWeekStartDate,
       this.shifts(),
     );
@@ -276,21 +300,23 @@ export class Schedule implements OnInit, OnDestroy {
       employeeName: `${employee.firstName} ${employee.lastName}`.trim(),
       actualDate: date,
       form: shiftForm,
-    }
+    };
 
     this.shifts.update((current) => [...current, newShift]);
     this.closeEmployeeModal();
   }
 
   getShiftsForDate(date: string): CalendarShift[] {
-    return this.shifts().filter(
-      (shift) => shift.actualDate === date
-    );
+    return this.shifts().filter((shift) => shift.actualDate === date);
   }
 
-  removeShift(shift: CalendarShift) {
-    this.shifts.update((current) => 
-      current.filter((currentShift) => currentShift !== shift)
+  removeShift(shiftToRemove: CalendarShift): void {
+    this.shifts.update((current) =>
+      current.filter((shift) =>
+        shiftToRemove.shiftId != null
+          ? shift.shiftId !== shiftToRemove.shiftId
+          : shift !== shiftToRemove,
+      ),
     );
   }
 
@@ -315,7 +341,33 @@ export class Schedule implements OnInit, OnDestroy {
       .filter((shift) => shift.actualDate === date)
       .map((shift) => shift.employeeId);
   });
-  
+
+  private toCalendarShift(
+    employeeId: number,
+    employeeName: string,
+    shift: ShiftDTO,
+  ): CalendarShift {
+    const form = this.scheduleFormService.createShiftForm(shift.actualDate);
+
+    const [startHour = '', startMinute = ''] = (shift.startsAt ?? '').split(':');
+    const [endHour = '', endMinute = ''] = (shift.endsAt ?? '').split(':');
+
+    form.patchValue({
+      actualDate: shift.actualDate,
+      startHour,
+      startMinute,
+      endHour,
+      endMinute,
+    });
+
+    return {
+      shiftId: shift.shiftId,
+      employeeId,
+      employeeName,
+      actualDate: shift.actualDate,
+      form,
+    };
+  }
 }
 
 // A integer validator mainly used by the week number input

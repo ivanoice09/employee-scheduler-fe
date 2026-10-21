@@ -1,11 +1,11 @@
 import { Service } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { CalendarShift } from '../../features/schedule/schedule';
 import { SaveShiftDTO } from '../DTO/POST/SaveShiftDTO';
 import { SaveWeekDTO } from '../DTO/POST/SaveWeekDTO ';
 import { ShiftAssignmentDTO } from '../DTO/POST/ShiftAssignmentDTO ';
 import { WeekScheduleForm } from '../services/schedule-form-service';
 import { toTime } from '../utils/date-time-util';
+import { CalendarShift } from '../DTO/GET/CalendarShift';
 
 type WeekScheduleFormValue = ReturnType<
     FormGroup<WeekScheduleForm>['getRawValue']

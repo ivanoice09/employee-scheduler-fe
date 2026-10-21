@@ -1,69 +1,82 @@
+:host {
+  display: contents;
+}
+
+/* Remove this wrapper's layout box too. */
 .time-picker {
-  position: static;
+  display: contents;
 }
 
-.time-picker input {
-  width: 38px;
-  padding: 5px 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  text-align: center;
+/* Each input occupies one cell in the first row. */
+.time-picker > input {
+  grid-row: 1;
+
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
-  font-size: 1rem;
+
+  padding: 8px 4px;
+  text-align: center;
+  font: inherit;
+
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
 }
 
+.time-picker > input:disabled {
+  background: #f3f3f3;
+  cursor: not-allowed;
+}
+
+/* The open options list occupies the entire second row. */
 .time-picker-options {
-  position: absolute;
-  top: calc(100% + -10px);
-  left: 0;
-  right: 0;
-  width: auto;
-  z-index: 100;
+  grid-row: 2;
+  grid-column: 1 / -1;
+
+  position: static;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  max-height: 260px;
-  overflow-y: auto;
+  grid-template-columns: repeat(auto-fit, minmax(2.5rem, 1fr));
+  gap: 6px;
+
+  margin-top: 8px;
   padding: 8px;
-  border: 2px solid #4a4d50;
-  border-radius: 8px;
-  background: rgb(238, 238, 238);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: none;
 }
 
 .time-picker-option {
-  padding: 8px 4px;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 8px 0;
+
+  font: inherit;
+  text-align: center;
+
   border: none;
   border-radius: 4px;
-  background: transparent;
+  background: #eee;
+  color: #333;
   cursor: pointer;
-  font: inherit;
 }
 
-.time-picker-option:hover,
-.time-picker-option:focus-visible {
-  background: #eff6ff;
+.time-picker-option:hover:not(:disabled) {
+  background: #ddd;
 }
 
-.time-picker-option.picked {
-  background: #d7d7d7;
+.time-picker-option.selected {
+  background: #1976d2;
+  color: white;
 }
 
-.open-up .time-picker-options {
-  top: auto;
-  bottom: calc(100% + 10px);
-}
-
-@media (max-width: 1624px) {
-  .time-picker input {
-    min-width: 0;
-    text-align: center;
-    font-size: 1rem;
-    width: 20px;
-  }
-
-  .time-picker-option {
-    font-size: 14px;
-  }
+.time-picker-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

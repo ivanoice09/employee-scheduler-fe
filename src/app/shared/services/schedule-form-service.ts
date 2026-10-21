@@ -32,9 +32,9 @@ export class ScheduleFormService {
     return this.fb.group({
       actualDate: this.fb.control(actualDate),
       startHour: this.fb.control(''),
-      startMinute: this.fb.control(''),
+      startMinute: this.fb.control('00'),
       endHour: this.fb.control(''),
-      endMinute: this.fb.control(''),
+      endMinute: this.fb.control('00'),
     });
   }
 

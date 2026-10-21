@@ -115,7 +115,21 @@ export class TimePicker implements ControlValueAccessor {
     const input = event.target as HTMLInputElement;
     const raw = input.value.trim();
 
-    if (!raw || !/^\d{1,2}$/.test(raw)) {
+    this.onTouched();
+
+    // Empty minutes default to zero; empty hours remain empty.
+    if (!raw) {
+      const fallback = this.type() === 'minute' ? '00' : '';
+
+      input.value = fallback;
+      this.value.set(fallback);
+      this.onChange(fallback === '' ? null : fallback);
+      return;
+    }
+
+    // Do not silently replace invalid input with zero.
+    if (!/^\d{1,2}$/.test(raw)) {
+      input.value = '';
       this.value.set('');
       this.onChange(null);
       return;
@@ -132,6 +146,7 @@ export class TimePicker implements ControlValueAccessor {
 
     const normalized = number.toString().padStart(2, '0');
 
+    input.value = normalized;
     this.value.set(normalized);
     this.onChange(normalized);
   }

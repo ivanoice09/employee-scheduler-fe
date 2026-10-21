@@ -86,12 +86,12 @@
 
       @for (
         shift of getShiftsForDate(dayDate($index)); 
-        track shift.employeeId + '-' + shift.actualDate + '-' + $index
+        track shift.shiftId ?? shift.employeeId + '-' + shift.actualDate + '-' + $index
       ) {
         <div class="employee-container">
           <div class="assigned-employee">
             <!-- This is where the names of the selected officers will be visible -->
-            <span>{{ shift.employeeName }}</span>
+            <span class="employee-name">{{ shift.employeeName }}</span>
 
             <button
               type="button"
