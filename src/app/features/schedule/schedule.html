@@ -78,7 +78,7 @@
   @for (dayName of dayNames; track $index) {
   <swiper-slide class="date-shifts-wrapper">
     <div class="date-header">
-      <span>{{ dayName | slice: 0 : 3 | uppercase }}</span>
+      <span>{{ dayName | uppercase }}</span>
       <span>{{ week.startDate | dayOffset: $index | date: 'dd' }}</span>
     </div>
 
@@ -89,60 +89,51 @@
         track shift.employeeId + '-' + shift.actualDate + '-' + $index
       ) {
         <div class="employee-container">
-
           <div class="assigned-employee">
             <!-- This is where the names of the selected officers will be visible -->
-             <span>{{ shift.employeeName }}</span>
+            <span>{{ shift.employeeName }}</span>
 
-             <div class="shift-time-inputs" [formGroup]="shift.form">
-                <input
-                  type="number"
-                  min="0"
-                  max="23"
-                  placeholder="HH"
-                  formControlName="startHour"
-                />
-
-                <span>:</span>
-
-                <input
-                  type="number"
-                  min="0"
-                  max="59"
-                  placeholder="MM"
-                  formControlName="startMinute"
-                />
-
-                <span>–</span>
-
-                <input
-                  type="number"
-                  min="0"
-                  max="23"
-                  placeholder="HH"
-                  formControlName="endHour"
-                />
-
-                <span>:</span>
-
-                <input
-                  type="number"
-                  min="0"
-                  max="59"
-                  placeholder="MM"
-                  formControlName="endMinute"
-                />
-             </div>
+            <button
+              type="button"
+              class="btn-remove-shift"
+              (click)="removeShift(shift)"
+            >
+              <i class="bi bi-x"></i>
+            </button>
           </div>
 
-          <button
-            type="button"
-            class="btn-remove-shift"
-            (click)="removeShift(shift)"
-          >
-            x
-          </button>
+          <!-- RIGHT ABOUT HERE! -->
+          <div class="shift-time-inputs" [formGroup]="shift.form">
+            <app-time-picker
+              type="hour"
+              [pickerId]="'start-hour-' + shift.employeeId + '-' + shift.actualDate + '-' + $index"
+              formControlName="startHour"
+            />
 
+            <span>:</span>
+
+            <app-time-picker
+              type="minute"
+              [pickerId]="'start-minute-' + shift.employeeId + '-' + shift.actualDate + '-' + $index"
+              formControlName="startMinute"
+            />
+
+            <span>–</span>
+
+            <app-time-picker
+              type="hour"
+              [pickerId]="'end-hour-' + shift.employeeId + '-' + shift.actualDate + '-' + $index"
+              formControlName="endHour"
+            />
+
+            <span>:</span>
+
+            <app-time-picker
+              type="minute"
+              [pickerId]="'end-minute-' + shift.employeeId + '-' + shift.actualDate + '-' + $index"
+              formControlName="endMinute"
+            />
+          </div>
         </div>
       }
      
@@ -174,6 +165,7 @@
       @if (employeeModalOpen()) {
         <app-employee-modal 
           [modalOpen]="employeeModalOpen()"
+          [selectedEmployeeIds]="selectedEmployeeIds()"
           (employeeSelected)="addShift($event)"
           (modalClosed)="closeEmployeeModal()"
         />

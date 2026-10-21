@@ -137,13 +137,31 @@
 }
 
 .employee-container {
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 8px;
+  padding: 8px;
+}
+ 
+.assigned-employee {
   display: flex;
   justify-content: space-between;
-  border: 1px solid black;
-  padding: 8px;
-  background-color: white;
   align-items: center;
+  margin-bottom: 10px;
+  font-weight: 500;
 }
+
+.shift-time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.shift-time-inputs app-time-picker {
+  width: 3rem;
+}
+
+
 
 .btn-add-shift {
   border: 1px solid black;
@@ -186,17 +204,17 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-.modal-container {
-  border-radius: 8px;
-  width: 100%;
-  overflow-y: auto;
-}
-
 .modal-header {
   display: flex;
   justify-content: space-between;
   padding: 20px;
   box-shadow: 0 10px 10px rgba(193, 193, 193, 0.2);
+}
+
+.modal-container {
+  border-radius: 8px;
+  width: 100%;
+  overflow-y: auto;
 }
 
 .hide {
@@ -222,7 +240,4 @@
 /* ============== */
 
 @media (max-width: 1624px) {
-  .schedule-grid {
-    grid-template-columns: max-content repeat(7, minmax(110px, 1fr));
-  }
 }

@@ -17,6 +17,8 @@
   background: #f2f2f2;
 }
 
-.wmployee-name {
+.employee-name {
+  display: flex;
   font-weight: 600;
+  gap: 10px;
 }

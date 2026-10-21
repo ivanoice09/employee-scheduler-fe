@@ -1,4 +1,4 @@
-import { Component, inject, input, OnInit, output, signal } from '@angular/core';
+import { Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
 import { EmployeeService } from '../../services/http/employee-service';
 import { EmployeeDTO } from '../../DTO/GET/EmployeeDTO';
 
@@ -13,8 +13,17 @@ export class EmployeeModal implements OnInit {
   loading = signal(false);
 
   modalOpen = input.required<boolean>();
+  selectedEmployeeIds = input.required<number[]>();
   employeeSelected = output<EmployeeDTO>();
   modalClosed = output<void>();
+
+  availableEmployees = computed(() => {
+    const selectedIds = new Set(this.selectedEmployeeIds());
+
+    return this.employees().filter(
+      (employee) => !selectedIds.has(employee.employeeId)
+    );
+  });
 
   private employeeService = inject(EmployeeService);
 

@@ -1,24 +1,23 @@
+<!-- EMPLOYEE MODAL BODAY -->
 <div class="modal-body">
-    @if (employees(); as employees) {
-        @if (employees.length === 0) {
-            <div class="empty-state">
-                <span>No employees found</span>
-            </div>
-        } @else {
-            <div class="employees-list">
-                @for (employee of employees; track employee.employeeId) {
-                    <div class="employee-item" (click)="selectEmployee(employee)">
-                        <div class="employee-name">
-                            <span>{{ employee.firstName }}</span>
-                            <span>{{ employee.lastName }}</span>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-    } @else {
+    @if (loading()) {
         <div class="spinner">
             <span>Loading...</span>
+        </div>
+    } @else if (availableEmployees().length === 0) {
+        <div class="empty-state">
+            <span>No available employees</span>
+        </div>
+    } @else {
+        <div class="employee-list">
+            @for (employee of availableEmployees(); track employee.employeeId) {
+                <div class="employee-item" (click)="selectEmployee(employee)">
+                    <div class="employee-name">
+                        <span>{{ employee.firstName }}</span>
+                        <span>{{ employee.lastName }}</span>
+                    </div>
+                </div>
+            }
         </div>
     }
 </div>

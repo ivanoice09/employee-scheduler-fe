@@ -1,4 +1,4 @@
-import { AsyncPipe, DatePipe, SlicePipe, UpperCasePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, UpperCasePipe } from '@angular/common';
 import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
@@ -23,6 +23,7 @@ import { EmployeeService } from '../../shared/services/http/employee-service';
 import { ScheduleService } from '../../shared/services/http/schedule-service';
 import { ScheduleFormService, ShiftForm, WeekScheduleForm } from '../../shared/services/schedule-form-service';
 import { AlertUtil } from '../../shared/utils/alert-util';
+import { TimePicker } from '../../shared/components/time-picker/time-picker';
 
 export interface CalendarShift {
   employeeId: number;
@@ -40,11 +41,11 @@ register();
     AsyncPipe,
     DatePipe,
     ReactiveFormsModule,
-    SlicePipe,
     UpperCasePipe,
     DemoSessionTimerPipe,
     DayOffsetPipe,
     EmployeeModal,
+    TimePicker,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './schedule.html',
@@ -303,15 +304,18 @@ export class Schedule implements OnInit, OnDestroy {
     return date.toISOString().slice(0, 10);
   }
 
-  employeeName(employeeId: number): string {
-    const employee = this.employees().find(
-      (e) => e.employeeId === employeeId
-    );
+  selectedEmployeeIds = computed(() => {
+    const date = this.selectedDate();
 
-    return employee
-      ? `${employee.firstName} ${employee.lastName}`.trim()
-      : 'Unknown employee';
-  }
+    if (!date) {
+      return [];
+    }
+
+    return this.shifts()
+      .filter((shift) => shift.actualDate === date)
+      .map((shift) => shift.employeeId);
+  });
+  
 }
 
 // A integer validator mainly used by the week number input
