@@ -3,11 +3,29 @@
 
   <div class="schedule-details">
     <div class="year-section">
-      <span>YEAR:</span>
-      <span> {{ week.year }}</span>
+      <!-- <span class="label">YEAR</span> -->
+      <form [formGroup]="yearNavigationForm" (ngSubmit)="changeYear()" class="year-navigation">
+        <input 
+          type="number"
+          formControlName="year"
+          class="year-input"
+          step="1"
+          inputmode="numeric"
+          autocomplete="off"
+          aria-label="Year number"
+          (blur)="changeYear()"
+          (keydown.enter)="$event.preventDefault(); changeYear()" 
+        />
+        @if (
+          yearNavigationForm.get('year')?.invalid &&
+          yearNavigationForm.get('year')?.touched
+        ) {
+          <span class="year-error">2026-2030</span>
+        }
+      </form>
     </div>
     <div class="week-section">
-      <span>WEEK:</span>
+      <!-- <span class="label">WEEK</span> -->
       <form [formGroup]="weekNavigationForm" (ngSubmit)="changeWeek()" class="week-navigation">
         <input 
           type="number" 
@@ -30,14 +48,10 @@
         }
       </form>
     </div>
-    <div class="start-section">
-      <span>START:</span>
-      <span> {{ week.startDate | date: 'MMM dd' | uppercase }}</span>
-    </div>
-    <div class="status-section">
-      <span>STATUS:</span>
+    <!-- <div class="status-section">
+      <span class="label">STATUS</span>
       <span> {{ week.status ?? 'undefined' }} </span>
-    </div>
+    </div> -->
   </div>
 
   <div class="action-buttons">
@@ -54,15 +68,6 @@
       {{ saving() ? '' : 'SAVE' }}
     </button>
 
-    <button 
-      type="button" 
-      class="btn-slide btn-toggle-view" 
-      [disabled]="!isWeekLocked()" 
-      (click)="toggleViewMode()"
-    >
-      {{ viewMode() === 'edit' ? 'VIEW' : 'EDIT' }}
-    </button>
-
     @if (remainingSeconds$ | async; as remainingSeconds) {
     <div class="expiry-grp">
       <button 
@@ -75,7 +80,9 @@
       </button>
 
       <div class="demo-session-timer" [class.hide]="isExpiryHidden()">
-        <span style="cursor: default">{{ remainingSeconds | demoSessionTimer }}</span>
+        <span style="cursor: default">
+          {{ remainingSeconds | demoSessionTimer }}
+        </span>
       </div>
     </div>
     }
@@ -86,9 +93,9 @@
 <!-- DAYS AND EMPLOYEE CONTAINERS: -->
 <swiper-container
   #daysSwiper
-  class="day-swiper"
+  class="days-swiper"
   slides-per-view="1"
-  space-between="30"
+  space-between="16"
   grab-cursor="true"
   breakpoints='{
     "640": { "slidesPerView": 2 },
@@ -160,16 +167,15 @@
           </div>
         </div>
       }
-     
-      <button 
-        type="button" 
-        class="btn-add-shift"
-        (click)="openEmployeeModal(dayDate($index))"
-      >
-        <i class="bi bi-plus"></i>
-      </button>
-
     </div>
+    <button 
+      type="button" 
+      class="btn-add-shift"
+      (click)="openEmployeeModal(dayDate($index))"
+    >
+      <i class="bi bi-plus"></i>
+      <span>add shift</span>
+    </button>
   </swiper-slide>
   }
 </swiper-container>

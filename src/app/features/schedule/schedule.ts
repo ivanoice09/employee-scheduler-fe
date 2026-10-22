@@ -72,6 +72,10 @@ export class Schedule implements OnInit, OnDestroy {
     weekNumber: [0, [Validators.required, Validators.min(1), Validators.max(53), integerValidator]],
   });
 
+  yearNavigationForm = this.formBuilder.group({
+    year: [0, [Validators.required, Validators.min(2026), Validators.max(2030), integerValidator]],
+  });
+
   weekScheduleForm!: FormGroup<WeekScheduleForm>;
 
   currentWeekStartDate = '';
@@ -114,6 +118,10 @@ export class Schedule implements OnInit, OnDestroy {
   private loadWeekIntoForm(week: WeekDTO): void {
     this.week.set(week);
     this.currentWeekStartDate = week.startDate;
+
+    this.yearNavigationForm.patchValue({
+      year: week.year,
+    });
 
     this.weekNavigationForm.patchValue({
       weekNumber: week.weekNumber,
@@ -174,6 +182,28 @@ export class Schedule implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  changeYear(): void {
+    const yearControl = this.yearNavigationForm.get('year');
+
+    if (!yearControl || yearControl.invalid) {
+      yearControl?.markAsTouched();
+    }
+
+    const week = this.week();
+
+    if (!week) {
+      return;
+    }
+
+    const newYear = Number(yearControl?.value);
+
+    if (newYear === week.year) {
+      return;
+    }
+
+    this.router.navigate(['/schedule', newYear, week.weekNumber])
+  }
+
   changeWeek(): void {
     const weekControl = this.weekNavigationForm.get('weekNumber');
 
@@ -195,25 +225,6 @@ export class Schedule implements OnInit, OnDestroy {
     }
 
     this.router.navigate(['/schedule', week.year, newWeekNumber]);
-  }
-
-  /**
-   * Returns TRUE when week.status is not null.
-   * So if the status is DRAFT, PUBLISHED, or LOCKED return TRUE.
-   * If TRUE then the view toggler button is ENABLED.
-   */
-  isWeekLocked = computed(() => this.week()?.status != null);
-
-  /**
-   * Toggle between 'edit' and 'read' modes.
-   * Only allowed when get isWeekLocked() is TRUE.
-   */
-  toggleViewMode(): void {
-    if (!this.isWeekLocked()) {
-      return;
-    }
-
-    this.viewMode.set(this.viewMode() === 'edit' ? 'read' : 'edit');
   }
 
   save(): void {

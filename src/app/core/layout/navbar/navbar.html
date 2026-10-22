@@ -1,26 +1,5 @@
 <div class="nav-space">
     <nav class="nav-container" [class.scrolled]="isScrolled">
         <a class="home" routerLink="/">HOME</a>
-
-        <button 
-            class="burger" 
-            type="button" 
-            (click)="toggleMenu()" 
-            [attr.aria-expanded]="menuOpen()"
-            aria-controls="main-menu" 
-            aria-label="Toggle navigation menu"
-        >
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-
-        <!-- <ul id="main-menu" class="menu" [class.open]="menuOpen()">
-            <li><a routerLink="/dashboard" (click)="closeMenu()">Dashboard</a></li>
-            <li><a routerLink="/schedule" (click)="closeMenu()">Schedule</a></li>
-            <li><a routerLink="/employees" (click)="closeMenu()">Employees</a></li>
-            <li><a routerLink="/reports" (click)="closeMenu()">Reports</a></li>
-            <li><a routerLink="/settings" (click)="closeMenu()">Settings</a></li>
-        </ul> -->
     </nav>
 </div>

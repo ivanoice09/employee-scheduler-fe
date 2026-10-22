@@ -1,16 +1,34 @@
-/* ================= */
-/* WEEK NUMBER INPUT */
-/* ================= */
+/* =========================== */
+/* CONTROL BAR AND ITS CONTENT */
+/* =========================== */
 
+.controlBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #CED3DC;
+  padding: 8px 16px;
+  margin-bottom: 15px;
+}
+
+.year-section,
+.week-section,
+.status-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* WEEK NUMBER INPUT */
+.year-navigation,
 .week-navigation {
   display: flex;
   align-items: center;
   gap: 0.35rem;
 }
 
+.year-input,
 .week-input {
-  border: 1px solid transparent;
-  border-radius: 4px;
   text-align: center;
 }
 
@@ -24,51 +42,49 @@
   white-space: nowrap;
 }
 
-/* =========================== */
-/* CONTROL BAR AND ITS CONTENT */
-/* =========================== */
-
-.controlBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #CED3DC;
-  border-radius: 8px;
-  padding: 8px;
-  margin-bottom: 15px;
+.week-input[type="number"]::-webkit-inner-spin-button,
+.week-input[type="number"]::-webkit-outer-spin-button,
+.year-input[type="number"]::-webkit-inner-spin-button,
+.week-input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
 }
 
-.year-section,
-.week-section,
-.start-section,
-.status-section {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.week-input[type="number"], .year-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
-.schedule-details {
-  display: flex;
-  justify-content: space-between;
-  width: 60%;
-}
-
+.schedule-details,
 .action-buttons {
   display: flex;
-  gap: 2rem;
+  gap: 0.5rem;
 }
 
+.year-input,
+.week-input,
 .btn-save,
-.btn-toggle-view {
+.btn-toggle-view,
+.btn-hide-expiry {
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
+  width: 65px;
+  border: 1px solid #707070;
+}
+
+.week-input {
+  width: 50px;
+}
+
+.year-input {
+  width: 70px;
 }
 
 .btn-save {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 65px;
 }
 
 .btn-save:disabled {
@@ -104,9 +120,16 @@
 /* ================ */
 
 .days-swiper {
-  width: 100%;
-  padding-bottom: 12px;
-  align-items: flex-start;
+  padding: 0 8px;
+}
+
+.days-swiper swiper-slide {
+  height: auto;
+  align-self: flex-start;
+}
+
+swiper-container.days-swiper::part(wrapper) {
+  padding-bottom: 16px;
 }
 
 .date-shifts-wrapper {
@@ -114,9 +137,9 @@
   height: auto;
   box-sizing: border-box;
   border-radius: 8px;
-  padding: 7px;
+  padding: 10px;
   background-color: #CED3DC;
-  box-shadow: 0 10px 10px rgba(193, 193, 193, 0.2);
+  box-shadow: 0px 5px 2px rgba(25, 24, 24, 0.2);
 }
 
 .date-header {
@@ -132,22 +155,28 @@
 .shifts-container {
   display: flex;
   flex-direction: column;
+  border-radius: 8px;
   margin-top: 10px;
-  gap: 10px;
+
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 .employee-container {
+  display: flex;
+  flex-direction: column;
   background-color: white;
   border-radius: 8px;
   padding: 8px;
   overflow: visible;
+  gap: 10px;
+  margin-bottom: 10px;
 }
  
 .assigned-employee {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
   font-weight: 500;
 }
 
@@ -193,7 +222,12 @@
 
 .btn-add-shift {
   border-radius: 8px;
+  width: 100%;
+  display: flex;
   background-color: transparent;
+  align-items: center;
+  gap: 5px;
+  justify-content: center;
 }
 
 .btn-add-shift i {
@@ -201,9 +235,9 @@
   font-size: 20px;
 }
 
-.day-swiper swiper-slide {
-  height: auto;
-  align-self: flex-start;
+.btn-add-shift span {
+  color: white;
+  font-size: 16px;
 }
 
 /* ============== */
@@ -262,13 +296,7 @@
 
 .demo-session-timer {
   border: 1px solid #707070;
+  border-radius: 0 8px 8px 0;
   border-left: none;
   padding: 0.5rem 0.75rem;
-}
-
-/* ============== */
-/* RESPONSIVENESS */
-/* ============== */
-
-@media (max-width: 1624px) {
 }
