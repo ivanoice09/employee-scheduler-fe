@@ -9,7 +9,8 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #FCF7F8;
+
+  background: var(--bg);
 
   /* Font from google */
   font-family: 'Google Sans Code', monospace;
@@ -66,4 +67,9 @@ button {
 .btn-slide:disabled {
   cursor: default;
   opacity: 0.55;
+}
+
+:root,
+[data-theme='lighy'] {
+  --bg: #f6f7fb;
 }

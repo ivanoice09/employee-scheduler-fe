@@ -2,14 +2,10 @@
   position: sticky;
   top: 0;
   z-index: 100;
-
   display: block;
   box-sizing: border-box;
   width: 100%;
   margin: 0;
-
-  background: #fff;
-  /* border-bottom: 1px solid #d7d7d7; */
 
   transition:
     top 0.2s ease,
@@ -23,7 +19,6 @@
   top: 10px;
   width: calc(100% - 20px);
   margin-left: 10px;
-
   box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 }
 
@@ -36,12 +31,8 @@
   box-sizing: border-box;
   min-height: 60px;
   justify-content: space-between;
-
-  background: white;
+  background: #504d4d;
   border-radius: inherit;
-
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-
   margin-bottom: 8px;
 
   /* Settings for burger */
@@ -52,7 +43,7 @@
 }
 
 :host(.scrolled) .nav-container {
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .home {
