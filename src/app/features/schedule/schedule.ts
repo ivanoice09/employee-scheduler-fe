@@ -18,7 +18,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EMPTY, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
+import { delay, EMPTY, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
 import { register } from 'swiper/element';
 import { EmployeeModal } from '../../shared/components/employee-modal/employee-modal';
 import { TimePicker } from '../../shared/components/time-picker/time-picker';
@@ -57,6 +57,15 @@ register();
   styleUrl: './schedule.css',
 })
 export class Schedule implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
+  private readonly expiryStorageKey = 'isExpiryHidden';
+
+  weekScheduleForm!: FormGroup<WeekScheduleForm>;
+
+  currentWeekStartDate = '';
+
+  dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
   private formBuilder = inject(FormBuilder);
   private scheduleService = inject(ScheduleService);
   private route = inject(ActivatedRoute);
@@ -67,7 +76,16 @@ export class Schedule implements OnInit, OnDestroy {
   private employeeService = inject(EmployeeService);
   private shiftService = inject(ShiftService);
   private weekUtil = inject(WeekUtil);
+  private demoSessionHelper = inject(DemoSessionHelper);
 
+  week = signal<WeekDTO | null>(null);
+  shifts = signal<CalendarShift[]>([]);
+  employees = signal<EmployeeDTO[]>([]);
+  selectedDate = signal<string | null>(null);
+  employeeModalOpen = signal(false);
+  isExpiryHidden = signal(this.readInitialExpiryState());
+  shiftPendingDeletion = signal<CalendarShift | null>(null);
+  isDeletingShift = signal(false);
   reloading = signal(false);
   saving = signal(false);
 
@@ -79,14 +97,6 @@ export class Schedule implements OnInit, OnDestroy {
     year: [0, [Validators.required, Validators.min(2000), Validators.max(2100), integerValidator]],
   });
 
-  weekScheduleForm!: FormGroup<WeekScheduleForm>;
-
-  currentWeekStartDate = '';
-
-  dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-  private readonly destroy$ = new Subject<void>();
-  private demoSessionHelper = inject(DemoSessionHelper);
   remainingSeconds$ = this.demoSessionHelper.remainingSeconds$;
 
   ngOnInit(): void {
@@ -249,7 +259,7 @@ export class Schedule implements OnInit, OnDestroy {
     this.scheduleService
       .saveWeek(payload)
       .pipe(
-        // delay(600), // just to show if spinner animation works
+        delay(800), // just to show if spinner animation works
         takeUntil(this.destroy$),
         finalize(() => this.saving.set(false)),
       )
@@ -274,19 +284,6 @@ export class Schedule implements OnInit, OnDestroy {
   get shiftAssignmentsFormArray(): FormArray {
     return this.weekScheduleForm.get('shiftAssignments') as FormArray;
   }
-
-  // ==========================================================
-  //                MODERN UI SETTINGS HERE!!!
-  // ==========================================================
-
-  week = signal<WeekDTO | null>(null);
-  shifts = signal<CalendarShift[]>([]);
-  employees = signal<EmployeeDTO[]>([]);
-  selectedDate = signal<string | null>(null);
-  employeeModalOpen = signal(false);
-  isExpiryHidden = signal(this.readInitialExpiryState());
-  shiftPendingDeletion = signal<CalendarShift | null>(null);
-  isDeletingShift = signal(false);
 
   openEmployeeModal(date: string) {
     this.selectedDate.set(date);
@@ -324,15 +321,10 @@ export class Schedule implements OnInit, OnDestroy {
 
   // removes unsaved shift from the ui
   removeShift(shiftToRemove: CalendarShift): void {
-    console.log('removeShift clicked', shiftToRemove);
-
     if (shiftToRemove.shiftId == null) {
-      console.log('unsaved shift: removing locally');
       this.removeUnsavedShift(shiftToRemove);
       return;
     }
-
-    console.log('saved shift: opening modal', shiftToRemove.shiftId);
     this.openDeleteConfirmation(shiftToRemove);
   }
 
@@ -425,14 +417,10 @@ export class Schedule implements OnInit, OnDestroy {
     };
   }
 
-  private readonly expiryStorageKey = 'isExpiryHidden';
-
   toggleExpiry() {
     this.isExpiryHidden.update((value) => {
       const next = !value;
-      console.log('saving:', next);
       localStorage.setItem(this.expiryStorageKey, String(next));
-      console.log('saved value:', localStorage.getItem(this.expiryStorageKey));
       return next;
     });
   }

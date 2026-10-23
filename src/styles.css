@@ -32,5 +32,13 @@ button {
 
 :root,
 [data-theme='light'] {
-  --bg: #f6f7fb;
+  --main: #CED3DC;
+  --bg: #F6F7FB;
+  --surface: #FFFFFF;
+  --surface-2: #EEF1F7;
+  --surface-3: rgba(130, 128, 128, 0.37);
+  --primary: #2563EB;
+  --primary-soft: #E5EEFF;
+  --border: #D8DEE9;
+  --text: #1A202C;
 }

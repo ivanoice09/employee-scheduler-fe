@@ -55,6 +55,29 @@
   </div>
 
   <div class="action-buttons">
+    @if (remainingSeconds$ | async; as remainingSeconds) {
+    <div class="expiry-grp">
+      <button 
+        type="button" 
+        class="btn-hide-expiry btn-hover-style"
+        (click)="toggleExpiry()"
+      >
+        <!-- {{ isExpiryHidden() ? 'SHOW' : 'HIDE' }} -->
+        @if (isExpiryHidden()) {
+          <i class="bi bi-chevron-left"></i>
+        } @else {
+          <i class="bi bi-chevron-right"></i>
+        }
+      </button>
+
+      <div class="demo-session-timer" [class.hide]="isExpiryHidden()">
+        <span style="cursor: default">
+          {{ remainingSeconds | demoSessionTimer }}
+        </span>
+      </div>
+    </div>
+    }
+
     <button 
       type="button" 
       class="btn-save" 
@@ -63,28 +86,10 @@
     >
       @if (saving()) {
       <span class="btn-save-spinner" aria-hidden="true"></span>
+      } @else {
+        <i class="bi bi-save"></i>
       }
-      {{ saving() ? '' : 'SAVE' }}
     </button>
-
-    @if (remainingSeconds$ | async; as remainingSeconds) {
-    <div class="expiry-grp">
-      <button 
-        type="button" 
-        class="btn-hide-expiry"
-        [class.clicked]="isExpiryHidden()" 
-        (click)="toggleExpiry()"
-      >
-        {{ isExpiryHidden() ? 'SHOW' : 'HIDE ' }}
-      </button>
-
-      <div class="demo-session-timer" [class.hidden]="isExpiryHidden()">
-        <span style="cursor: default">
-          {{ remainingSeconds | demoSessionTimer }}
-        </span>
-      </div>
-    </div>
-    }
   </div>
 
 </div>

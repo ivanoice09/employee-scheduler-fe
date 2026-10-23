@@ -6,30 +6,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #CED3DC;
+  background-color: var(--main);
   padding: 8px 16px;
   margin-bottom: 15px;
 }
 
-.year-section,
-.week-section,
-.status-section {
+.schedule-details {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  gap: 2px;
 }
 
-/* WEEK NUMBER INPUT */
-.year-navigation,
-.week-navigation {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+.year-input {
+  border: 1px solid var(--surface-2);
+  border-radius: 8px 0 0 8px;
+  width: 55px;
+}
+
+.week-input {
+  border: 1px solid var(--surface-2);
+  border-radius: 0 8px 8px 0;
+  width: 40px;
 }
 
 .year-input,
 .week-input {
+  background: var(--surface);
   text-align: center;
+  padding: 0.5rem 0;
+  outline: none;
 }
 
 .week-input.ng-invalid.ng-touched {
@@ -42,43 +46,52 @@
   white-space: nowrap;
 }
 
-/* .week-input[type="number"]::-webkit-inner-spin-button,
-.week-input[type="number"]::-webkit-outer-spin-button,
-.year-input[type="number"]::-webkit-inner-spin-button,
-.week-input[type="number"]::-webkit-outer-spin-button {
+.week-input[type='number']::-webkit-inner-spin-button,
+.week-input[type='number']::-webkit-outer-spin-button,
+.year-input[type='number']::-webkit-inner-spin-button,
+.week-input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   appearance: none;
   margin: 0;
 }
 
-.week-input[type="number"], .year-input[type="number"] {
+.week-input[type='number'],
+.year-input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
-} */
+}
 
-.schedule-details,
 .action-buttons {
   display: flex;
   gap: 0.5rem;
+  border-radius: 5px;
+  width: auto;
+  background: var(--surface);
+  padding: 3px;
 }
 
-.year-input,
-.week-input,
-.btn-save,
-.btn-toggle-view,
-.btn-hide-expiry {
-  padding: 0.5rem 0.6rem;
+.btn-save {
+  padding: 0.5rem;
   border-radius: 8px;
-  width: 65px;
-  border: 1px solid #707070;
+  width: auto;
+  background: transparent;
+  border: none;
+  transition: background 0.3s ease;
 }
 
-.week-input {
-  width: 60px;
+.btn-save:hover {
+  background: var(--surface-2);
 }
 
-.year-input {
-  width: 80px;
+.btn-hide-expiry {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+.btn-hide-expiry:hover {
+  background: var(--surface-2);
 }
 
 .btn-save {
@@ -99,14 +112,6 @@
   border-top-color: transparent;
   border-radius: 50%;
   animation: btn-spin 0.7s linear infinite;
-}
-
-.btn-hide-expiry {
-  border-radius: 8px 0 0 8px;
-}
-
-.btn-hide-expiry.clicked {
-  border-radius: 8px;
 }
 
 @keyframes btn-spin {
@@ -138,7 +143,7 @@ swiper-container.days-swiper::part(wrapper) {
   box-sizing: border-box;
   border-radius: 8px;
   padding: 10px;
-  background-color: #CED3DC;
+  background-color: #ced3dc;
   box-shadow: 0px 5px 2px rgba(25, 24, 24, 0.2);
 }
 
@@ -172,7 +177,7 @@ swiper-container.days-swiper::part(wrapper) {
   gap: 10px;
   margin-bottom: 10px;
 }
- 
+
 .assigned-employee {
   display: flex;
   justify-content: space-between;
@@ -186,20 +191,20 @@ swiper-container.days-swiper::part(wrapper) {
 
 .btn-remove-shift {
   border-radius: 4px;
-  background-color: gainsboro;
+  background-color: transparent;
   color: black;
   transition: background-color 0.3s ease;
+  border: 2px solid var(--surface-2);
 }
 
 .btn-remove-shift:hover {
-  background-color: red;
-  color: white;
+  background-color: var(--surface-2);
 }
 
 .shift-time-inputs {
   display: grid;
 
-    grid-template-columns:
+  grid-template-columns:
     minmax(0, 1fr) auto
     minmax(0, 1fr) auto
     minmax(0, 1fr) auto
@@ -224,20 +229,26 @@ swiper-container.days-swiper::part(wrapper) {
   border-radius: 8px;
   width: 100%;
   display: flex;
-  background-color: transparent;
+  background: none;
+  border: none;
   align-items: center;
   gap: 5px;
   justify-content: center;
+  transition: background-color 0.3s ease;
 }
 
 .btn-add-shift i {
-  color: white;
-  font-size: 20px;
+  color: var(--surface);
+  font-size: 24px;
 }
 
 .btn-add-shift span {
-  color: white;
-  font-size: 16px;
+  color: var(--surface);
+  font-size: 18px;
+}
+
+.btn-add-shift:hover {
+  background-color: var(--surface-3);
 }
 
 /* ======================= */
@@ -291,9 +302,6 @@ swiper-container.days-swiper::part(wrapper) {
 }
 
 .demo-session-timer {
-  border: 1px solid #707070;
-  border-radius: 0 8px 8px 0;
-  border-left: none;
   padding: 0.5rem 0.75rem;
 }
 
@@ -312,8 +320,4 @@ swiper-container.days-swiper::part(wrapper) {
 
 .hide {
   display: none;
-}
-
-.demo-session-timer.hidden {
-  display: none !important;
 }

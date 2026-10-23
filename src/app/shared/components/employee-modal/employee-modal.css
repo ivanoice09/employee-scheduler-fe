@@ -1,13 +1,12 @@
 .employee-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
 }
 
 .employee-item {
   display: flex;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
+  padding: 0.8rem 1rem;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s ease;
