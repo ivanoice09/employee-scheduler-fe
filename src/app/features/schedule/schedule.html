@@ -60,7 +60,6 @@
       class="btn-save" 
       (click)="save()" 
       [disabled]="saving()"
-      [class.hide]="viewMode() === 'read'"
     >
       @if (saving()) {
       <span class="btn-save-spinner" aria-hidden="true"></span>
@@ -79,7 +78,7 @@
         {{ isExpiryHidden() ? 'SHOW' : 'HIDE ' }}
       </button>
 
-      <div class="demo-session-timer" [class.hide]="isExpiryHidden()">
+      <div class="demo-session-timer" [class.hidden]="isExpiryHidden()">
         <span style="cursor: default">
           {{ remainingSeconds | demoSessionTimer }}
         </span>
@@ -183,7 +182,7 @@
 
 <!-- MODAL EMPLOYEE SELECTOR WRAPPER -->
 <div class="modal-backdrop" [class.hide]="!employeeModalOpen()" (click)="closeEmployeeModal()">
-  <div class="employee-modal">
+  <div class="modal">
     
     @if (employeeModalOpen()) {
     <div class="modal-header">
@@ -203,3 +202,38 @@
     </div>
   </div>
 </div>
+
+@if (shiftPendingDeletion(); as shift) {
+  <div class="modal-backdrop">
+    <div class="modal">
+      <h2>Delete shift</h2>
+
+      <p>
+        Are you sure you want to delete this shift for
+        <strong>{{ shift.employeeName }}</strong>?
+      </p>
+
+      <div class="modal-actions">
+        <button
+          type="button"
+          (click)="cancelDeleteConfirmation()"
+          [disabled]="isDeletingShift()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          (click)="confirmDeleteShift()"
+          [disabled]="isDeletingShift()"
+        >
+          @if (isDeletingShift()) {
+            Deleting...
+          } @else {
+            Yes, delete
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

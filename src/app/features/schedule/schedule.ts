@@ -18,7 +18,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
+import { EMPTY, filter, finalize, Subject, switchMap, takeUntil } from 'rxjs';
 import { register } from 'swiper/element';
 import { EmployeeModal } from '../../shared/components/employee-modal/employee-modal';
 import { TimePicker } from '../../shared/components/time-picker/time-picker';
@@ -34,6 +34,8 @@ import { ScheduleService } from '../../shared/services/http/schedule-service';
 import { ScheduleFormService, WeekScheduleForm } from '../../shared/services/schedule-form-service';
 import { AlertUtil } from '../../shared/utils/alert-util';
 import { ShiftDTO } from '../../shared/DTO/GET/ShiftDTO';
+import { ShiftService } from '../../shared/services/http/shift-service';
+import { WeekUtil } from '../../shared/utils/week-util';
 
 register();
 
@@ -63,8 +65,9 @@ export class Schedule implements OnInit, OnDestroy {
   private scheduleFormService = inject(ScheduleFormService);
   private schedulePayloadMapper = inject(SchedulePayloadMapper);
   private employeeService = inject(EmployeeService);
+  private shiftService = inject(ShiftService);
+  private weekUtil = inject(WeekUtil);
 
-  viewMode = signal<'edit' | 'read'>('edit');
   reloading = signal(false);
   saving = signal(false);
 
@@ -73,7 +76,7 @@ export class Schedule implements OnInit, OnDestroy {
   });
 
   yearNavigationForm = this.formBuilder.group({
-    year: [0, [Validators.required, Validators.min(2026), Validators.max(2030), integerValidator]],
+    year: [0, [Validators.required, Validators.min(2000), Validators.max(2100), integerValidator]],
   });
 
   weekScheduleForm!: FormGroup<WeekScheduleForm>;
@@ -96,6 +99,16 @@ export class Schedule implements OnInit, OnDestroy {
         switchMap((params) => {
           const year = Number(params.get('year'));
           const week = Number(params.get('week'));
+
+          if (!Number.isInteger(year) || !Number.isInteger(week)) {
+            this.router.navigate([
+              '/schedule',
+              this.weekUtil.getCurrentYear(),
+              this.weekUtil.getCurrentWeek(),
+            ]);
+            return EMPTY;
+          }
+
           return this.scheduleService.getWeek(year, week);
         }),
         takeUntil(this.destroy$),
@@ -137,15 +150,10 @@ export class Schedule implements OnInit, OnDestroy {
     );
 
     const calendarShifts = week.assignments.flatMap((assignment) => {
-      const employeeName = 
-        employeesById.get(assignment.employeeId) ?? 'Unknown employee';
+      const employeeName = employeesById.get(assignment.employeeId) ?? 'Unknown employee';
 
       return assignment.shifts.map((shift) =>
-        this.toCalendarShift(
-          assignment.employeeId, 
-          employeeName, 
-          shift
-        ),
+        this.toCalendarShift(assignment.employeeId, employeeName, shift),
       );
     });
 
@@ -201,7 +209,7 @@ export class Schedule implements OnInit, OnDestroy {
       return;
     }
 
-    this.router.navigate(['/schedule', newYear, week.weekNumber])
+    this.router.navigate(['/schedule', newYear, week.weekNumber]);
   }
 
   changeWeek(): void {
@@ -267,16 +275,6 @@ export class Schedule implements OnInit, OnDestroy {
     return this.weekScheduleForm.get('shiftAssignments') as FormArray;
   }
 
-  // =====================
-  // CONTROL BAR FUNCTIONS
-  // =====================
-
-  showOrHide: 'hide' | 'show' = 'show';
-
-  toggleExpiryTimer() {
-    this.showOrHide = this.showOrHide === 'show' ? 'hide' : 'show';
-  }
-
   // ==========================================================
   //                MODERN UI SETTINGS HERE!!!
   // ==========================================================
@@ -286,7 +284,9 @@ export class Schedule implements OnInit, OnDestroy {
   employees = signal<EmployeeDTO[]>([]);
   selectedDate = signal<string | null>(null);
   employeeModalOpen = signal(false);
-  isExpiryHidden = signal(false);
+  isExpiryHidden = signal(this.readInitialExpiryState());
+  shiftPendingDeletion = signal<CalendarShift | null>(null);
+  isDeletingShift = signal(false);
 
   openEmployeeModal(date: string) {
     this.selectedDate.set(date);
@@ -322,14 +322,58 @@ export class Schedule implements OnInit, OnDestroy {
     return this.shifts().filter((shift) => shift.actualDate === date);
   }
 
+  // removes unsaved shift from the ui
   removeShift(shiftToRemove: CalendarShift): void {
-    this.shifts.update((current) =>
-      current.filter((shift) =>
-        shiftToRemove.shiftId != null
-          ? shift.shiftId !== shiftToRemove.shiftId
-          : shift !== shiftToRemove,
-      ),
-    );
+    console.log('removeShift clicked', shiftToRemove);
+
+    if (shiftToRemove.shiftId == null) {
+      console.log('unsaved shift: removing locally');
+      this.removeUnsavedShift(shiftToRemove);
+      return;
+    }
+
+    console.log('saved shift: opening modal', shiftToRemove.shiftId);
+    this.openDeleteConfirmation(shiftToRemove);
+  }
+
+  private removeUnsavedShift(shiftToRemove: CalendarShift): void {
+    this.shifts.update((current) => current.filter((shift) => shift !== shiftToRemove));
+  }
+
+  private removeSavedShiftLocally(shiftId: number): void {
+    this.shifts.update((current) => current.filter((shift) => shift.shiftId !== shiftId));
+  }
+
+  openDeleteConfirmation(shift: CalendarShift): void {
+    this.shiftPendingDeletion.set(shift);
+  }
+
+  cancelDeleteConfirmation(): void {
+    this.shiftPendingDeletion.set(null);
+  }
+
+  confirmDeleteShift(): void {
+    const shift = this.shiftPendingDeletion();
+
+    if (!shift?.shiftId) {
+      this.cancelDeleteConfirmation();
+      return;
+    }
+
+    this.isDeletingShift.set(true);
+
+    this.shiftService.deleteShift(shift.shiftId).subscribe({
+      next: () => {
+        this.removeSavedShiftLocally(shift.shiftId!);
+        this.shiftPendingDeletion.set(null);
+        this.isDeletingShift.set(false);
+        this.alertUtil.show('SHIFT DELETED', 'success');
+      },
+      error: () => {
+        this.isDeletingShift.set(false);
+        // Show a toast/error message here if you have one.
+      },
+    });
   }
 
   dayDate(index: number): string {
@@ -381,8 +425,20 @@ export class Schedule implements OnInit, OnDestroy {
     };
   }
 
+  private readonly expiryStorageKey = 'isExpiryHidden';
+
   toggleExpiry() {
-    this.isExpiryHidden.update(value => !value);
+    this.isExpiryHidden.update((value) => {
+      const next = !value;
+      console.log('saving:', next);
+      localStorage.setItem(this.expiryStorageKey, String(next));
+      console.log('saved value:', localStorage.getItem(this.expiryStorageKey));
+      return next;
+    });
+  }
+
+  private readInitialExpiryState(): boolean {
+    return localStorage.getItem(this.expiryStorageKey) === 'true';
   }
 }
 

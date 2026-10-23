@@ -25,4 +25,5 @@ export class ScheduleService {
       { withCredentials: true }
     );
   }
+
 }

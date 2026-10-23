@@ -42,7 +42,7 @@
   white-space: nowrap;
 }
 
-.week-input[type="number"]::-webkit-inner-spin-button,
+/* .week-input[type="number"]::-webkit-inner-spin-button,
 .week-input[type="number"]::-webkit-outer-spin-button,
 .year-input[type="number"]::-webkit-inner-spin-button,
 .week-input[type="number"]::-webkit-outer-spin-button {
@@ -54,7 +54,7 @@
 .week-input[type="number"], .year-input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
-}
+} */
 
 .schedule-details,
 .action-buttons {
@@ -67,18 +67,18 @@
 .btn-save,
 .btn-toggle-view,
 .btn-hide-expiry {
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.6rem;
   border-radius: 8px;
   width: 65px;
   border: 1px solid #707070;
 }
 
 .week-input {
-  width: 50px;
+  width: 60px;
 }
 
 .year-input {
-  width: 70px;
+  width: 80px;
 }
 
 .btn-save {
@@ -240,9 +240,9 @@ swiper-container.days-swiper::part(wrapper) {
   font-size: 16px;
 }
 
-/* ============== */
-/* MODAL SETTINGS */
-/* ============== */
+/* ======================= */
+/* EMPLOYEE MODAL SETTINGS */
+/* ======================= */
 
 .modal-backdrop {
   position: fixed;
@@ -257,7 +257,7 @@ swiper-container.days-swiper::part(wrapper) {
   z-index: 1068;
 }
 
-.employee-modal {
+.modal {
   position: fixed;
   width: 90%;
   max-width: 800px;
@@ -282,10 +282,6 @@ swiper-container.days-swiper::part(wrapper) {
   overflow-y: auto;
 }
 
-.hide {
-  display: none;
-}
-
 /* =================== */
 /* COOKIE EXPIRY TIMER */
 /* =================== */
@@ -299,4 +295,25 @@ swiper-container.days-swiper::part(wrapper) {
   border-radius: 0 8px 8px 0;
   border-left: none;
   padding: 0.5rem 0.75rem;
+}
+
+/* ======================= */
+/* DELETION MODAL SETTINGS */
+/* ======================= */
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+/* BEHAVIORAL PROPERTIES */
+
+.hide {
+  display: none;
+}
+
+.demo-session-timer.hidden {
+  display: none !important;
 }
