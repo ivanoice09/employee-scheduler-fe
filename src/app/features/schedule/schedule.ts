@@ -36,6 +36,7 @@ import { AlertUtil } from '../../shared/utils/alert-util';
 import { ShiftDTO } from '../../shared/DTO/GET/ShiftDTO';
 import { ShiftService } from '../../shared/services/http/shift-service';
 import { WeekUtil } from '../../shared/utils/week-util';
+import { Theme, ThemeService } from '../../shared/services/theme-service';
 
 register();
 
@@ -77,6 +78,7 @@ export class Schedule implements OnInit, OnDestroy {
   private shiftService = inject(ShiftService);
   private weekUtil = inject(WeekUtil);
   private demoSessionHelper = inject(DemoSessionHelper);
+  private themeService = inject(ThemeService);
 
   week = signal<WeekDTO | null>(null);
   shifts = signal<CalendarShift[]>([]);
@@ -88,6 +90,8 @@ export class Schedule implements OnInit, OnDestroy {
   isDeletingShift = signal(false);
   reloading = signal(false);
   saving = signal(false);
+  isDropdownOpen = false;
+  selectedTheme: Theme = 'device';
 
   weekNavigationForm = this.formBuilder.group({
     weekNumber: [0, [Validators.required, Validators.min(1), Validators.max(53), integerValidator]],
@@ -99,7 +103,15 @@ export class Schedule implements OnInit, OnDestroy {
 
   remainingSeconds$ = this.demoSessionHelper.remainingSeconds$;
 
+  themes: { value: Theme; label: string }[] = [
+    { value: 'light', label: 'Light' },
+    { value: 'dark', label: 'Dark' },
+    { value: 'device', label: 'Device' }
+  ];
+
   ngOnInit(): void {
+    this.selectedTheme = this.themeService.getTheme();
+
     this.employeeService
       .getEmployeesSaveInCache()
       .subscribe((employees) => this.employees.set(employees));
@@ -427,6 +439,17 @@ export class Schedule implements OnInit, OnDestroy {
 
   private readInitialExpiryState(): boolean {
     return localStorage.getItem(this.expiryStorageKey) === 'true';
+  }
+
+  // Theme
+  toggleDropdown(): void {
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
+
+  selectTheme(theme: Theme): void {
+    this.selectedTheme = theme;
+    this.themeService.setTheme(theme);
+    this.isDropdownOpen = false;
   }
 }
 

@@ -13,7 +13,7 @@
 }
 
 .employee-item:hover {
-  background: #f2f2f2;
+  background: var(--global-hover);
 }
 
 .employee-name {

@@ -2,7 +2,6 @@
   display: contents;
 }
 
-/* Remove this wrapper's layout box too. */
 .time-picker {
   display: contents;
 }
@@ -12,16 +11,16 @@
   grid-row: 1;
 
   box-sizing: border-box;
-  width: 100%;
+  /* width: 100%; */
   min-width: 0;
 
-  padding: 8px 4px;
+  padding: 8px 0;
   text-align: center;
   font: inherit;
 
-  border: 1px solid #ccc;
+  border: none;
   border-radius: 4px;
-  background: white;
+  background: none;
 }
 
 .time-picker > input:disabled {
@@ -43,11 +42,8 @@
   grid-template-columns: repeat(auto-fit, minmax(2.5rem, 1fr));
   gap: 6px;
 
-  margin-top: 8px;
-  padding: 8px;
+  margin-top: 15px;
 
-  background: #f8f9fa;
-  border: 1px solid #ddd;
   border-radius: 6px;
   box-shadow: none;
 }
@@ -62,18 +58,18 @@
 
   border: none;
   border-radius: 4px;
-  background: #eee;
-  color: #333;
+  background: var(--surface);
+  color: var(--global-text);
   cursor: pointer;
 }
 
 .time-picker-option:hover:not(:disabled) {
-  background: #ddd;
+  background: var(--global-hover);
 }
 
 .time-picker-option.selected {
-  background: #1976d2;
-  color: white;
+  background: #6b91b8;
+  color: var(--global-text);
 }
 
 .time-picker-option:disabled {

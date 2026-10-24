@@ -32,13 +32,19 @@ button {
 
 :root,
 [data-theme='light'] {
-  --main: #CED3DC;
+  --global-text: #FFFFFF;
+  --global-hover: rgba(130, 128, 128, 0.37);
+
   --bg: #F6F7FB;
-  --surface: #FFFFFF;
-  --surface-2: #EEF1F7;
-  --surface-3: rgba(130, 128, 128, 0.37);
-  --primary: #2563EB;
-  --primary-soft: #E5EEFF;
-  --border: #D8DEE9;
+  --surface: #A7B0CA;
   --text: #1A202C;
+}
+
+[data-theme='dark'] {
+  --global-text: #FFFFFF;
+  --global-hover: rgba(130, 128, 128, 0.37);
+
+  --bg: #3c414a;
+  --surface: #596072;
+  --text: #e8ecf3;
 }
