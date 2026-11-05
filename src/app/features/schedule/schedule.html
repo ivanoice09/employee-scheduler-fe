@@ -4,7 +4,7 @@
   <div class="schedule-details">
     <div class="year-section">
       <!-- <span class="label">YEAR</span> -->
-      <form [formGroup]="yearNavigationForm" (ngSubmit)="changeYear()" class="year-navigation">
+      <form [formGroup]="yearNavigationForm" (ngSubmit)="changeYear()">
         <input 
           type="number"
           formControlName="year"
@@ -20,7 +20,9 @@
           yearNavigationForm.get('year')?.invalid &&
           yearNavigationForm.get('year')?.touched
         ) {
-          <span class="year-error">2026-2030</span>
+          <div class="input-error">
+            The selected year is unavailable
+          </div>
         }
       </form>
     </div>
@@ -44,7 +46,9 @@
           weekNavigationForm.get('weekNumber')?.invalid &&
           weekNavigationForm.get('weekNumber')?.touched
         ) {
-        <span class="week-error">1-53</span>
+          <div class="input-error">
+            Week number must be between 1 and 53
+          </div>
         }
       </form>
     </div>

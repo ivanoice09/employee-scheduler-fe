@@ -41,6 +41,10 @@
   border-color: #d9534f;
 }
 
+form {
+  position: relative;
+}
+
 .week-error {
   color: #d9534f;
   font-size: 0.75rem;
@@ -60,6 +64,22 @@
 .year-input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+/* ====================================== */
+/*        WEEK INPUT ERROR DROPDOWN       */
+/* ====================================== */
+
+.input-error {
+  position: absolute;
+  top: calc(100% + 8px);
+  padding: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  z-index: 10;
+  color: white;
+  background-color: red;
+  border-radius: 8px;
+  min-width: 200px;
 }
 
 /* =========================== */
