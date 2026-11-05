@@ -1,0 +1,23 @@
+.employee-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.employee-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.employee-item:hover {
+  background: var(--global-hover);
+}
+
+.employee-name {
+  display: flex;
+  font-weight: 600;
+  gap: 10px;
+}

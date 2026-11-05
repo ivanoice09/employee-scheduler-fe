@@ -2,6 +2,7 @@ import { ShiftAssignmentDTO } from "../POST/ShiftAssignmentDTO ";
 import { EmployeeDTO } from "./EmployeeDTO";
 
 export interface WeekDTO {
+  id: number;
   year: number;
   weekNumber: number;
   startDate: string;

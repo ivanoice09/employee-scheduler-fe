@@ -5,7 +5,11 @@ import { Navbar } from './core/layout/navbar/navbar';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AlertOutlet, Navbar],
+  imports: [
+    RouterOutlet, 
+    AlertOutlet, 
+    // Navbar
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

@@ -1,24 +1,40 @@
-/* ================= */
-/* WEEK NUMBER INPUT */
-/* ================= */
+/* =========================== */
+/*        CONTROL BAR          */
+/* =========================== */
 
-.week-navigation {
+.controlBar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.35rem;
+  background-color: var(--surface);
+  padding: 8px 16px;
+  margin-bottom: 15px;
+}
+
+.schedule-details {
+  display: flex;
+  gap: 2px;
+  color: var(--text);
+}
+
+.year-input {
+  border: 1px solid var(--surface);
+  border-radius: 8px 0 0 8px;
+  width: 55px;
 }
 
 .week-input {
-  width: 3.5rem;
-  padding: 0.15rem 0.35rem;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  text-align: center;
-  transition: border-color 0.3s ease;
+  border: 1px solid var(--surface);
+  border-radius: 0 8px 8px 0;
+  width: 40px;
 }
 
-.week-input:hover {
-  border-color: #ccc;
+.year-input,
+.week-input {
+  background: var(--bg);
+  text-align: center;
+  padding: 0.5rem 0;
+  outline: none;
 }
 
 .week-input.ng-invalid.ng-touched {
@@ -31,51 +47,47 @@
   white-space: nowrap;
 }
 
+.week-input[type='number']::-webkit-inner-spin-button,
+.week-input[type='number']::-webkit-outer-spin-button,
+.year-input[type='number']::-webkit-inner-spin-button,
+.week-input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+.week-input[type='number'],
+.year-input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* =========================== */
-/* CONTROL BAR AND ITS CONTENT */
+/*        ACTION BUTTONS       */
 /* =========================== */
-
-.controlBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #707070;
-  padding: 8px;
-  margin-bottom: 10px;
-}
-
-.year-section,
-.week-section,
-.start-section,
-.status-section {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.schedule-details {
-  display: flex;
-  justify-content: space-between;
-  width: 60%;
-}
 
 .action-buttons {
   display: flex;
-  gap: 2rem;
-}
-
-.btn-save,
-.btn-toggle-view,
-.btn-hide-expiry {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #707070;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 5px;
+  width: auto;
+  background: var(--bg);
+  color: var(--text);
+  padding: 0.4rem;
 }
 
 .btn-save {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 65px;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  width: auto;
+  background: transparent;
+  border: none;
+  transition: background 0.3s ease;
+}
+
+.btn-save:hover {
+  background: var(--global-hover);
 }
 
 .btn-save:disabled {
@@ -98,45 +110,58 @@
   }
 }
 
-/* ========================= */
-/* GRID, CELL, HEADER STYLES */
-/* ========================= */
+/* ======================= */
+/* THEME DROPDOWN SETTINGS */
+/* ======================= */
 
-.schedule-grid {
-  display: grid;
-  grid-template-columns: 180px repeat(7, 1fr);
-  row-gap: 10px;
-  overflow-x: auto;
+.theme-switcher {
+  position: relative;
+  margin-bottom: 0;
 }
 
-.schedule-grid--loading {
-  opacity: 0.6;
-  pointer-events: none;
+.btn-theme {
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 0.2rem 0.5rem;
+  transition: background 0.3s ease;
 }
 
-.header-cell {
-  min-height: 60px;
-  border-bottom: 1px solid #707070;
-  border-top: 1px solid #707070;
-  border-right: 1px solid #707070;
+.theme-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 140px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--surface, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  z-index: 10;
 }
 
-.employee-header {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  border-left: 1px solid #707070;
+.theme-option {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
 }
 
-.specific-date {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
+.theme-option:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 
-.hide {
-  display: none;
+.theme-option.active {
+  font-weight: 600;
+}
+
+.btn-theme:hover {
+  background: var(--global-hover);
 }
 
 /* =================== */
@@ -145,20 +170,231 @@
 
 .expiry-grp {
   display: flex;
+  position: relative;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.demo-session-timer {
-  border: 1px solid #707070;
-  border-left: none;
-  padding: 0.5rem 0.75rem;
+.btn-hide-expiry {
+  padding: 0.2rem 0.3rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  transition: background 0.3s ease;
 }
 
-/* ============== */
-/* RESPONSIVENESS */
-/* ============== */
+.btn-hide-expiry:hover {
+  background: var(--global-hover);
+}
 
-@media (max-width: 1624px) {
-  .schedule-grid {
-    grid-template-columns: max-content repeat(7, minmax(110px, 1fr));
-  }
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===================================== */
+/*           SWIPER CONTAINER            */
+/* ===================================== */
+
+.days-swiper {
+  padding: 0 8px;
+}
+
+.days-swiper swiper-slide {
+  height: auto;
+  align-self: flex-start;
+}
+
+swiper-container.days-swiper::part(wrapper) {
+  padding-bottom: 16px;
+}
+
+.date-shifts-wrapper {
+  display: block;
+  height: auto;
+  box-sizing: border-box;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: var(--surface);
+  box-shadow: 0px 5px 2px rgba(25, 24, 24, 0.2);
+}
+
+.date-header {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  gap: 10px;
+  padding: 8px;
+  background-color: var(--bg);
+  border-radius: 6px;
+  color: var(--text);
+}
+
+.shifts-container {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  margin-top: 10px;
+
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.employee-container {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px;
+  overflow: visible;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.assigned-employee {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+}
+
+.employee-name {
+  margin-left: 3px;
+}
+
+.btn-remove-shift {
+  border-radius: 4px;
+  background-color: transparent;
+  color: var(--text);
+  transition: background-color 0.3s ease;
+  border: none;
+}
+
+.btn-remove-shift:hover {
+  background-color: var(--global-hover);
+}
+
+.shift-time-inputs {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr) auto
+    minmax(0, 1fr) auto
+    minmax(0, 1fr) auto
+    minmax(0, 1fr);
+
+  align-items: center;
+  column-gap: 0.25rem;
+}
+
+/* Keep the separators on the input row. */
+.shift-time-inputs > span {
+  grid-row: 1;
+  text-align: center;
+}
+
+/* Let the picker's children participate in this grid. */
+.shift-time-inputs > app-time-picker {
+  display: contents;
+}
+
+.btn-add-shift {
+  border-radius: 8px;
+  width: 100%;
+  display: flex;
+  background: none;
+  border: none;
+  align-items: center;
+  gap: 5px;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.btn-add-shift i {
+  color: var(--global-text);
+  font-size: 24px;
+}
+
+.btn-add-shift span {
+  color: var(--global-text);
+  font-size: 18px;
+}
+
+.btn-add-shift:hover {
+  background-color: var(--global-hover);
+}
+
+/* ======================= */
+/* EMPLOYEE MODAL SETTINGS */
+/* ======================= */
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1068;
+}
+
+.modal {
+  position: fixed;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+.modal-container {
+  border-radius: 8px;
+  width: 100%;
+  overflow-y: auto;
+}
+
+/* ======================= */
+/* DELETION MODAL SETTINGS */
+/* ======================= */
+
+.modal-delete-confirm {
+  background-color: var(--bg);
+  padding: 2rem 1rem;
+  border-radius: 8px;
+  color: var(--text);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.modal-actions button {
+  background: var(--surface);
+  border-radius: 8px;
+  color: var(--text);
+}
+
+/* BEHAVIORAL PROPERTIES */
+
+.hide {
+  display: none;
 }
